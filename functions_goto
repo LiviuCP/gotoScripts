@@ -7,8 +7,8 @@ function gotoDir {
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
 #
-hist_file=./.goto_history; #file containing a list of previously cd-ed directories
-temp_file=./.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
+hist_file=.goto_history; #file containing a list of previously cd-ed directories
+temp_file=.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
 max_rows=20; #maximum number of entries allowed in the history file 
 clear; 
 #
