@@ -135,21 +135,21 @@ while [[ $dir_nr != '1'  ]] &&
       [[ $dir_nr != 'q'  ]] &&
       [[ $dir_nr != 'Q'  ]] ;
 do
-      echo 'Invalid value. Please try again.';
+      echo 'Invalid value! Please try again.';
       echo; 
       read dir_nr;
 done
 #
 if [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
       clear; 
-      echo 'Aborted';
+      echo 'Aborted!';
       return 0;
 fi
 #
 if [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
       > "$hist_file";
       clear; 
-      echo 'History erased';
+      echo 'The history file content has been flushed.';
       return 0; 
 fi
 #
@@ -160,7 +160,8 @@ dir_path=`sed "$dir_nr"'q;d' "$hist_file"`;
 # Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function (this check is done for the situation when only a part of 10 lines are contained in the history file as the user has navigated to less than 10 directories) 
 #
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error, no valid directory on line $dir_nr of $hist_file";
+    echo "Error! No valid directory on line $dir_nr of $hist_file.";
+    echo 'The directory might have been moved or deleted.';
     return 1;
 fi
 goto "$dir_path";
