@@ -1,0 +1,168 @@
+# This file contains functions used for:
+# - navigating between folders
+# - tracking history of navigated folders and enabling the user to jump directly to one of these directories by entering only a number
+#
+function goto {
+# This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
+# The argument can be a relative or an absolute path
+# The function returns value 0 for successful execution and 1 in any other situation
+#
+hist_file=/Users/Liviu/.goto_history; #file containing a list of previously cd-ed directories
+temp_file=/Users/Liviu/bin/temp; #temporary file used for updating the history file with the new entry (new previous current directory)
+max_rows=20; #maximum number of entries allowed in the history file 
+clear; 
+#
+# Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history file exists
+#
+if [[ -z $1 ]]; then 
+    echo "No arguments entered. Script aborted.";
+    return 1;
+fi	 
+#
+if [[ ! -d $1 ]]; then 
+    echo "Invalid directory $1. It might not exist or have been deleted";
+    return 1;  
+fi
+#
+if [[ ! -f $hist_file ]]; then 
+   touch "$hist_file"; #create the history file if it does not already exist
+fi
+#
+# Step 2: memorize current directory and cd to the new directory
+#
+prev_dir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
+cd "$1";
+#
+# Step 3: close Finder if cd to the new dir had been successful
+#
+if [[ $? != 0 ]]; then 
+    echo "Error! Cannot change the directory to $1. Script aborted.";
+    return 1;  
+else
+    osascript -e 'quit app "Finder"'; #quit Finder
+fi
+#
+# Step 4: re-open Finder in the new directory if previous close operation had been succesful;
+# Then check if re-open was successful:
+# a) if not, make an attempt to repeat the re-open operation
+#    - if it fails again, then issue error and terminate script
+#    - if re-open was successful, proceed to step 5
+# b) if yes, proceed to step 5
+if [[ $? != 0 ]]; then 
+    echo 'Error when closing Finder. Script aborted.';
+    open –a terminal; #ensure the terminal stays in the foreground
+    return 1;
+else
+    open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
+fi
+#
+if [[ $? != 0 ]]; then
+    open . 2> /dev/null; #if re-opening finder fails, attempt to repeat the re-open operation
+    if [[ $? != 0 ]]; then 
+	echo “Error! Cannot open directory $1 in Finder. Reverting to previous directory $prev_dir.”; #if it fails again, issue error and terminate script 
+	echo 'Please try again.'; 
+	cd - > /dev/null;
+	return 1;
+    fi
+fi
+#
+# Step 5: if re-open was successful, update the history file (otherwise revert to the previous current directory)
+# This file update is done in 2 ways:
+# a) If path of previous directory already exists in the history file, it is moved from its current position (row) to the first row; all other paths follow (in the same order relative to each other as before)
+# b) If path of previous directory is not contained in the history file, it is pushed to the first position of the file; each other path is pushed onto the next row
+#
+echo "Previous directory: $prev_dir"; 
+echo "Opened directory: `pwd`";
+nr_of_rows=`wc -l "$hist_file" | awk '{print $1;}'`; 
+matched_row=`grep -xn "$prev_dir" "$hist_file"`;
+if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
+    matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
+    sed "$matched_row_nr"'d' "$hist_file" > "$temp_file";
+elif [[ $nr_of_rows -eq $max_rows ]]; then #if number of rows is at maximum, remove a row to make room for the new entry
+    sed "$max_rows"'d' "$hist_file" > "$temp_file";         
+else
+    cp "$hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency 
+fi
+echo "$prev_dir" > "$hist_file";
+cat "$temp_file" >> "$hist_file"; 
+rm "$temp_file"; #remove the temporary file, no longer needed
+#
+# Step 6: #no matter how the function works the terminal must remain the active window after the script finishes execution
+#
+open -a terminal;
+}
+#
+function gth {
+# This function reads a line from the .goto_history file and feeds it as argument to the goto function so the user navigates to that directory
+#
+# Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
+hist_file=/Users/Liviu/.goto_history; 
+clear;
+if [[ ! -s "$hist_file" ]]; then
+    echo 'Empty history file!';
+    return 0; 
+fi
+cat -n "$hist_file";
+echo;
+echo 'Enter the number of the directory you want to navigate to';
+echo 'Enter q or Q to quit, c or C to clear the history file';
+echo; 
+read dir_nr; 
+# Step 1: check the input entered by user. If should be a number between 1 and 10 (there are maximum 10 lines in the history file), clear or quit. Clear history or quit if required.  
+#
+while [[ $dir_nr != '1'  ]] &&
+      [[ $dir_nr != '2'  ]] &&
+      [[ $dir_nr != '3'  ]] &&
+      [[ $dir_nr != '4'  ]] &&
+      [[ $dir_nr != '5'  ]] &&
+      [[ $dir_nr != '6'  ]] &&
+      [[ $dir_nr != '7'  ]] &&
+      [[ $dir_nr != '8'  ]] &&
+      [[ $dir_nr != '9'  ]] &&
+      [[ $dir_nr != '10' ]] &&
+      [[ $dir_nr != '11' ]] &&
+      [[ $dir_nr != '12' ]] &&
+      [[ $dir_nr != '13' ]] &&
+      [[ $dir_nr != '14' ]] &&
+      [[ $dir_nr != '15' ]] &&
+      [[ $dir_nr != '16' ]] &&
+      [[ $dir_nr != '17' ]] &&
+      [[ $dir_nr != '18' ]] &&
+      [[ $dir_nr != '19' ]] &&
+      [[ $dir_nr != '20' ]] &&
+      [[ $dir_nr != 'c'  ]] &&
+      [[ $dir_nr != 'C'  ]] &&
+      [[ $dir_nr != 'q'  ]] &&
+      [[ $dir_nr != 'Q'  ]] ;
+do
+      echo 'Invalid value. Please try again.';
+      echo; 
+      read dir_nr;
+done
+#
+if [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
+      clear; 
+      echo 'Aborted';
+      return 0;
+fi
+#
+if [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
+      > "$hist_file";
+      clear; 
+      echo 'History erased';
+      return 0; 
+fi
+#
+# Step 2: read the line from the history file
+#
+dir_path=`sed "$dir_nr"'q;d' "$hist_file"`;
+#
+# Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function (this check is done for the situation when only a part of 10 lines are contained in the history file as the user has navigated to less than 10 directories) 
+#
+if [[ ! -d "$dir_path" ]]; then
+    echo "Error, no valid directory on line $dir_nr of $hist_file";
+    return 1;
+fi
+goto "$dir_path";
+return 0; 
+}
