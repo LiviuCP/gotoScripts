@@ -12,7 +12,7 @@ function gotoDir {
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 temp_file=$script_dir/.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
-max_rows=20; #maximum number of entries allowed in the history file 
+max_rows=25; #maximum number of entries allowed in the history file
 clear; 
 #
 # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history file exists
@@ -132,6 +132,11 @@ while [[ $dir_nr != '1'  ]] &&
       [[ $dir_nr != '18' ]] &&
       [[ $dir_nr != '19' ]] &&
       [[ $dir_nr != '20' ]] &&
+      [[ $dir_nr != '21' ]] &&
+      [[ $dir_nr != '22' ]] &&
+      [[ $dir_nr != '23' ]] &&
+      [[ $dir_nr != '24' ]] &&
+      [[ $dir_nr != '25' ]] &&
       [[ $dir_nr != 'c'  ]] &&
       [[ $dir_nr != 'C'  ]] &&
       [[ $dir_nr != 'q'  ]] &&
