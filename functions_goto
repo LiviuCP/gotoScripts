@@ -2,13 +2,13 @@
 # - navigating between folders
 # - tracking history of navigated folders and enabling the user to jump directly to one of these directories by entering only a number
 #
-function goto {
+function gotoDir {
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
 #
-hist_file=/Users/Liviu/.goto_history; #file containing a list of previously cd-ed directories
-temp_file=/Users/Liviu/bin/temp; #temporary file used for updating the history file with the new entry (new previous current directory)
+hist_file=./.goto_history; #file containing a list of previously cd-ed directories
+temp_file=./.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
 max_rows=20; #maximum number of entries allowed in the history file 
 clear; 
 #
@@ -92,7 +92,7 @@ rm "$temp_file"; #remove the temporary file, no longer needed
 open -a terminal;
 }
 #
-function gth {
+function gthist {
 # This function reads a line from the .goto_history file and feeds it as argument to the goto function so the user navigates to that directory
 #
 # Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
