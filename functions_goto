@@ -13,7 +13,9 @@ function gotoDir {
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 temp_file=$script_dir/.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
-max_rows=25; #maximum number of entries allowed in the history file
+r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
+p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
+
 clear; 
 #
 # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
@@ -85,8 +87,8 @@ matched_row=`grep -xn "$prev_dir" "$r_hist_file"`;
 if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
     matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
     sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
-elif [[ $nr_of_rows -eq $max_rows ]]; then #if number of rows is at maximum, remove a row to make room for the new entry
-    sed "$max_rows"'d' "$r_hist_file" > "$temp_file";
+elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then #if number of rows is at maximum, remove a row to make room for the new entry
+    sed "$r_hist_max_rows"'d' "$r_hist_file" > "$temp_file";
 else
     cp "$r_hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency
 fi
