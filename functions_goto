@@ -4,8 +4,9 @@
 #
 # global variables
 script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
-r_hist_file=$script_dir/.recent_history; #file containing a list of previously cd-ed directories
-p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the history file
+r_hist_file=$script_dir/.recent_history; #file containing a list of the most recently visited directories
+p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
+hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 #
 function gotoDir {
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
@@ -114,8 +115,11 @@ fi
 sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 mv "$temp_file" "$p_hist_file";
 #
-# Step 7: #no matter how the function works the terminal must remain the active window after the script finishes execution
+# Step 7: consolidate the recent and persistent history into a single file for a unified user access
 #
+cat "$r_hist_file" > "$hist_file";
+head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+#no matter how the function works the terminal must remain the active window after the script finishes execution
 open -a terminal;
 }
 #
@@ -124,11 +128,11 @@ function gthist {
 #
 # Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
 clear;
-if [[ ! -s "$r_hist_file" ]]; then
+if [[ ! -s "$hist_file" ]]; then
     echo 'Empty history file!';
     return 0; 
 fi
-cat -n "$r_hist_file";
+cat -n "$hist_file";
 echo;
 echo 'Enter the number of the directory you want to navigate to';
 echo 'Enter q or Q to quit, c or C to clear the history file';
@@ -178,7 +182,7 @@ if [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
 fi
 #
 if [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
-      > "$r_hist_file";
+      > "$hist_file";
       clear; 
       echo 'The history file content has been flushed.';
       return 0; 
@@ -186,12 +190,12 @@ fi
 #
 # Step 2: read the line from the history file
 #
-dir_path=`sed "$dir_nr"'q;d' "$r_hist_file"`;
+dir_path=`sed "$dir_nr"'q;d' "$hist_file"`;
 #
 # Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function (this check is done for the situation when only a part of 10 lines are contained in the history file as the user has navigated to less than 10 directories) 
 #
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error! No valid directory on line $dir_nr of $r_hist_file.";
+    echo "Error! No valid directory on line $dir_nr of $hist_file.";
     echo 'The directory might have been moved or deleted.';
     return 1;
 fi
