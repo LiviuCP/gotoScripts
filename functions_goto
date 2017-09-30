@@ -4,7 +4,7 @@
 #
 # global variables
 script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
-hist_file=$script_dir/.goto_history; #file containing a list of previously cd-ed directories
+r_hist_file=$script_dir/.recent_history; #file containing a list of previously cd-ed directories
 p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the history file
 #
 function gotoDir {
@@ -28,8 +28,8 @@ if [[ ! -d $1 ]]; then
     return 1;  
 fi
 #
-if [[ ! -f $hist_file ]]; then 
-   touch "$hist_file"; #create the history file if it does not already exist
+if [[ ! -f $r_hist_file ]]; then
+   touch "$r_hist_file"; #create the history file of the most recent visits if it does not already exist
 fi
 if [[ ! -f $p_hist_file ]]; then
     touch "$p_hist_file"; #same for the persistent history file
@@ -80,18 +80,18 @@ fi
 #
 echo "Previous directory: $prev_dir"; 
 echo "Opened directory: `pwd`";
-nr_of_rows=`wc -l "$hist_file" | awk '{print $1;}'`; 
-matched_row=`grep -xn "$prev_dir" "$hist_file"`;
+nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
+matched_row=`grep -xn "$prev_dir" "$r_hist_file"`;
 if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
     matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
-    sed "$matched_row_nr"'d' "$hist_file" > "$temp_file";
+    sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
 elif [[ $nr_of_rows -eq $max_rows ]]; then #if number of rows is at maximum, remove a row to make room for the new entry
-    sed "$max_rows"'d' "$hist_file" > "$temp_file";         
+    sed "$max_rows"'d' "$r_hist_file" > "$temp_file";
 else
-    cp "$hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency 
+    cp "$r_hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency
 fi
-echo "$prev_dir" > "$hist_file";
-cat "$temp_file" >> "$hist_file"; 
+echo "$prev_dir" > "$r_hist_file";
+cat "$temp_file" >> "$r_hist_file";
 rm "$temp_file"; #remove the temporary file, no longer needed
 #
 # Step 6: update the persistent history file, then get the most visited paths and append them to the history file
@@ -119,11 +119,11 @@ function gthist {
 #
 # Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
 clear;
-if [[ ! -s "$hist_file" ]]; then
+if [[ ! -s "$r_hist_file" ]]; then
     echo 'Empty history file!';
     return 0; 
 fi
-cat -n "$hist_file";
+cat -n "$r_hist_file";
 echo;
 echo 'Enter the number of the directory you want to navigate to';
 echo 'Enter q or Q to quit, c or C to clear the history file';
@@ -173,7 +173,7 @@ if [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
 fi
 #
 if [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
-      > "$hist_file";
+      > "$r_hist_file";
       clear; 
       echo 'The history file content has been flushed.';
       return 0; 
@@ -181,12 +181,12 @@ fi
 #
 # Step 2: read the line from the history file
 #
-dir_path=`sed "$dir_nr"'q;d' "$hist_file"`;
+dir_path=`sed "$dir_nr"'q;d' "$r_hist_file"`;
 #
 # Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function (this check is done for the situation when only a part of 10 lines are contained in the history file as the user has navigated to less than 10 directories) 
 #
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error! No valid directory on line $dir_nr of $hist_file.";
+    echo "Error! No valid directory on line $dir_nr of $r_hist_file.";
     echo 'The directory might have been moved or deleted.';
     return 1;
 fi
