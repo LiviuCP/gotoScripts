@@ -5,6 +5,7 @@
 # global variables
 script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
 hist_file=$script_dir/.goto_history; #file containing a list of previously cd-ed directories
+p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the history file
 #
 function gotoDir {
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
@@ -15,7 +16,7 @@ temp_file=$script_dir/.temp; #temporary file used for updating the history file 
 max_rows=25; #maximum number of entries allowed in the history file
 clear; 
 #
-# Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history file exists
+# Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
 #
 if [[ -z $1 ]]; then 
     echo "No arguments entered. Script aborted.";
@@ -29,6 +30,9 @@ fi
 #
 if [[ ! -f $hist_file ]]; then 
    touch "$hist_file"; #create the history file if it does not already exist
+fi
+if [[ ! -f $p_hist_file ]]; then
+    touch "$p_hist_file"; #same for the persistent history file
 fi
 #
 # Step 2: memorize current directory and cd to the new directory
@@ -90,7 +94,22 @@ echo "$prev_dir" > "$hist_file";
 cat "$temp_file" >> "$hist_file"; 
 rm "$temp_file"; #remove the temporary file, no longer needed
 #
-# Step 6: #no matter how the function works the terminal must remain the active window after the script finishes execution
+# Step 6: update the persistent history file, then get the most visited paths and append them to the history file
+#
+p_hist_matched_row=`grep "$prev_dir;" "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
+# if path already exists in the persistent history file, increase the number of visits (otherwise append to end of file)
+if [[ $? == 0 ]]; then
+    extracted_path=`echo $p_hist_matched_row | cut -f 1 -d ';'`;
+    visit_count=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
+    let "visit_count=visit_count+1";
+    p_hist_replacing_row="$extracted_path"';'"$visit_count";
+    sed -e "s+$p_hist_matched_row+$p_hist_replacing_row+g" "$p_hist_file" > "$temp_file";
+    mv "$temp_file" "$p_hist_file";
+else
+    echo "$prev_dir;1" >> "$p_hist_file";
+fi
+#
+# Step 7: #no matter how the function works the terminal must remain the active window after the script finishes execution
 #
 open -a terminal;
 }
