@@ -94,7 +94,7 @@ echo "$prev_dir" > "$r_hist_file";
 cat "$temp_file" >> "$r_hist_file";
 rm "$temp_file"; #remove the temporary file, no longer needed
 #
-# Step 6: update the persistent history file, then get the most visited paths and append them to the history file
+# Step 6: update the persistent history file, then sort it in reverse order by number of visits
 #
 p_hist_matched_row=`grep "$prev_dir;" "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
 # if path already exists in the persistent history file, increase the number of visits (otherwise append to end of file)
@@ -108,6 +108,9 @@ if [[ $? == 0 ]]; then
 else
     echo "$prev_dir;1" >> "$p_hist_file";
 fi
+# sort the paths by number of visits (most visited dirs come first)
+sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+mv "$temp_file" "$p_hist_file";
 #
 # Step 7: #no matter how the function works the terminal must remain the active window after the script finishes execution
 #
