@@ -202,3 +202,27 @@ fi
 goto "$dir_path";
 return 0; 
 }
+
+function goToPrevDir {
+#
+# Step 1: check that the consolidated history file contains at least one entry (first entry is the one of the previous directory)
+#
+if [[ ! -s "$hist_file" ]]; then
+    echo 'Empty history file!';
+    return 1;
+fi
+#
+# Step 2: read the line from the history file
+#
+dir_path=`sed '1q;d' "$hist_file"`;
+#
+# Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function
+#
+if [[ ! -d "$dir_path" ]]; then
+    echo "Error! No valid directory on line $dir_nr of $hist_file.";
+    echo 'The directory might have been moved or deleted.';
+    return 1;
+fi
+gotoDir "$dir_path";
+return 0;
+}
