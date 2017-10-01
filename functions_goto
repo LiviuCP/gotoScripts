@@ -64,16 +64,16 @@ if [[ $? != 0 ]]; then
     return 1;
 else
     open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
+    sleep 0.5; #delay further operations so user does not enter a new path before the directory is completely opened
 fi
 #
 if [[ $? != 0 ]]; then
-    open . 2> /dev/null; #if re-opening finder fails, attempt to repeat the re-open operation
-    if [[ $? != 0 ]]; then 
-	echo “Error! Cannot open directory $1 in Finder. Reverting to previous directory $prev_dir.”; #if it fails again, issue error and terminate script 
-	echo 'Please try again.'; 
-	cd - > /dev/null;
-	return 1;
-    fi
+    sleep 1.5; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
+    echo "Error! Cannot open directory $1 in Finder."; #if reopening fails, issue error and terminate script
+    echo "Reverting to previous directory $prev_dir.";
+    echo 'Please try again.';
+    cd - > /dev/null;
+    return 1;
 fi
 #
 # Step 5: if re-open was successful, update the history file (otherwise revert to the previous current directory)
