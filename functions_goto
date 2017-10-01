@@ -13,6 +13,9 @@ function gotoDir {
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
 #
+delay_before_close=0.2; #number of seconds of delay before using osascript to close the Finder window
+delay_after_reopen=0.3; #number of seconds of delay after re-opening the Finder window
+delay_error_reopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
 temp_file=$script_dir/.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
 r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
 p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
@@ -49,7 +52,7 @@ if [[ $? != 0 ]]; then
     echo "Error! Cannot change the directory to $1. Script aborted.";
     return 1;  
 else
-    sleep 0.2; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
+    sleep $delay_before_close; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
     osascript -e 'quit app "Finder"'; #quit Finder
 fi
 #
@@ -65,11 +68,11 @@ if [[ $? != 0 ]]; then
     return 1;
 else
     open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
-    sleep 0.3; #delay further operations so user does not enter a new path before the directory is completely opened
+    sleep $delay_after_reopen; #delay further operations so user does not enter a new path before the directory is completely opened
 fi
 #
 if [[ $? != 0 ]]; then
-    sleep 1.5; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
+    sleep $delay_error_reopen; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
     echo "Error! Cannot open directory $1 in Finder."; #if reopening fails, issue error and terminate script
     echo "Reverting to previous directory $prev_dir.";
     echo 'Please try again.';
