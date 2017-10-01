@@ -49,7 +49,7 @@ if [[ $? != 0 ]]; then
     echo "Error! Cannot change the directory to $1. Script aborted.";
     return 1;  
 else
-    sleep 0.25; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
+    sleep 0.2; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
     osascript -e 'quit app "Finder"'; #quit Finder
 fi
 #
@@ -65,7 +65,7 @@ if [[ $? != 0 ]]; then
     return 1;
 else
     open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
-    sleep 0.25; #delay further operations so user does not enter a new path before the directory is completely opened
+    sleep 0.3; #delay further operations so user does not enter a new path before the directory is completely opened
 fi
 #
 if [[ $? != 0 ]]; then
