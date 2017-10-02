@@ -80,13 +80,19 @@ if [[ $? != 0 ]]; then
     return 1;
 fi
 #
-# Step 5: if re-open was successful, update the history file (otherwise revert to the previous current directory)
-# This file update is done in 2 ways:
-# a) If path of previous directory already exists in the history file, it is moved from its current position (row) to the first row; all other paths follow (in the same order relative to each other as before)
-# b) If path of previous directory is not contained in the history file, it is pushed to the first position of the file; each other path is pushed onto the next row
+# Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the recent history file
 #
 echo "Previous directory: $prev_dir"; 
 echo "Opened directory: `pwd`";
+# don't touch history files if the current directory had remained unchanged (no more actions required, skip all further steps)
+current_dir=`pwd`;
+if [[ $current_dir == $prev_dir ]]; then
+    echo;
+    echo 'The current directory remained unchanged!';
+    echo;
+    open -a terminal;
+    return 0;
+fi
 nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
 matched_row=`grep -xn "$prev_dir" "$r_hist_file"`;
 if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
