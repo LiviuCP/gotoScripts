@@ -138,16 +138,19 @@ function gthist {
 # This function reads a line from the .goto_history file and feeds it as argument to the goto function so the user navigates to that directory
 #
 # Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
-clear;
 if [[ ! -s "$hist_file" ]]; then
     echo 'Empty history file!';
     return 0; 
 fi
-cat -n "$hist_file";
-echo;
-echo 'Enter the number of the directory you want to navigate to';
-echo 'Enter q or Q to quit, c or C to clear the history file';
-echo; 
+function displayHistory {
+    clear;
+    cat -n "$hist_file";
+    echo;
+    echo 'Enter the number of the directory you want to navigate to';
+    echo 'Enter q or Q to quit, c or C to clear the history file';
+    echo;
+}
+displayHistory;
 read dir_nr;
 #
 # Step 1: check the input entered by user. If should be either:
@@ -174,6 +177,7 @@ do
 	echo 'The history file content has been flushed.';
 	return 0;
     else
+	displayHistory;
 	echo 'Invalid value! Please try again.';
 	echo;
 	read dir_nr;
