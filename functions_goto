@@ -7,6 +7,7 @@ script_dir=`pwd`; #get script directory in order to build the paths of the suppo
 r_hist_file=$script_dir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
 hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
+nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
 #
 function gotoDir {
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
@@ -147,56 +148,37 @@ echo;
 echo 'Enter the number of the directory you want to navigate to';
 echo 'Enter q or Q to quit, c or C to clear the history file';
 echo; 
-read dir_nr; 
-# Step 1: check the input entered by user. If should be a number between 1 and 10 (there are maximum 10 lines in the history file), clear or quit. Clear history or quit if required.  
+read dir_nr;
 #
-while [[ $dir_nr != '1'  ]] &&
-      [[ $dir_nr != '2'  ]] &&
-      [[ $dir_nr != '3'  ]] &&
-      [[ $dir_nr != '4'  ]] &&
-      [[ $dir_nr != '5'  ]] &&
-      [[ $dir_nr != '6'  ]] &&
-      [[ $dir_nr != '7'  ]] &&
-      [[ $dir_nr != '8'  ]] &&
-      [[ $dir_nr != '9'  ]] &&
-      [[ $dir_nr != '10' ]] &&
-      [[ $dir_nr != '11' ]] &&
-      [[ $dir_nr != '12' ]] &&
-      [[ $dir_nr != '13' ]] &&
-      [[ $dir_nr != '14' ]] &&
-      [[ $dir_nr != '15' ]] &&
-      [[ $dir_nr != '16' ]] &&
-      [[ $dir_nr != '17' ]] &&
-      [[ $dir_nr != '18' ]] &&
-      [[ $dir_nr != '19' ]] &&
-      [[ $dir_nr != '20' ]] &&
-      [[ $dir_nr != '21' ]] &&
-      [[ $dir_nr != '22' ]] &&
-      [[ $dir_nr != '23' ]] &&
-      [[ $dir_nr != '24' ]] &&
-      [[ $dir_nr != '25' ]] &&
-      [[ $dir_nr != 'c'  ]] &&
-      [[ $dir_nr != 'C'  ]] &&
-      [[ $dir_nr != 'q'  ]] &&
-      [[ $dir_nr != 'Q'  ]] ;
+# Step 1: check the input entered by user. If should be either:
+# - a number between 1 and and the number of entries contained in the file
+# - a character that triggers flushing the content of the history file or quitting the function
+#
+tempVar=`wc -l "$hist_file"`;
+currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
+while [[ '1' == '1' ]];
 do
-      echo 'Invalid value! Please try again.';
-      echo; 
-      read dir_nr;
+    if [[ $dir_nr =~  $nonNegativeInteger     ]] &&
+       [[ $dir_nr -ge 1                       ]] &&
+       [[ $dir_nr -le $currentNumberOfEntries ]]; then
+	break;
+    elif [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
+	clear;
+	echo 'Aborted!';
+	return 0;
+    elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
+	> "$hist_file";
+	> "$r_hist_file";
+	> "$p_hist_file";
+	clear;
+	echo 'The history file content has been flushed.';
+	return 0;
+    else
+	echo 'Invalid value! Please try again.';
+	echo;
+	read dir_nr;
+    fi
 done
-#
-if [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
-      clear; 
-      echo 'Aborted!';
-      return 0;
-fi
-#
-if [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
-      > "$hist_file";
-      clear; 
-      echo 'The history file content has been flushed.';
-      return 0; 
-fi
 #
 # Step 2: read the line from the history file
 #
