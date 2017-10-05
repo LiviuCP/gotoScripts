@@ -250,7 +250,7 @@ else
 fi
 # Step 2: append the path to the favorites file (create it if it does not exist)
 if [[  -f "$fav_file" ]]; then
-    grep -x $dir_to_add "$fav_file" > /dev/null;
+    grep -x "$dir_to_add" "$fav_file" > /dev/null;
     if [[ $? != 0 ]]; then
 	echo $dir_to_add >> "$fav_file";
 	echo "Directory $dir_to_add added to favorites";
@@ -264,4 +264,53 @@ else
     echo "Directory $dir_to_add added to favorites";
     return 0
 fi
+}
+
+function removeFromFavorites {
+#temporary file used for updating the favorites file when an entry is removed
+temp_file=$script_dir/.temp;
+# Step 1: check if the favorites file exists
+if [[ ! -f "$fav_file" ]]; then
+    echo "Error! The favorites file $fav_file does not exist or has been deleted";
+    return 1;
+fi
+# Step 2: display the file and prompt the user to choose the line to be deleted
+function displayFavoritesFile {
+clear;
+cat -n "$fav_file";
+echo;
+echo 'Enter the number of the entry to be removed';
+echo 'Enter q or Q to quit';
+echo;
+}
+displayFavoritesFile;
+read dir_nr;
+# Step 3: check the input entered by user. If should be either:
+# - a number between 1 and and the number of entries contained in the file
+# - a character that triggers quitting the function
+#
+tempVar=`wc -l "$input_file"`;
+currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
+while [[ '1' == '1' ]];
+do
+    if [[ $dir_nr =~  $nonNegativeInteger     ]] &&
+       [[ $dir_nr -ge 1                       ]] &&
+       [[ $dir_nr -le $currentNumberOfEntries ]]; then
+	break;
+    elif [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
+	clear;
+	echo 'Aborted!';
+	return 0;
+    else
+	displayFavoritesFile;
+	echo 'Invalid value! Please try again.';
+	echo;
+	read dir_nr;
+    fi
+done
+# Step 4: delete the entry
+sed "$dir_nr"'d' "$fav_file" > "$temp_file";
+mv "$temp_file" "$fav_file";
+clear;
+echo 'Entry removed from the favorites file';
 }
