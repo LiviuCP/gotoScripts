@@ -7,6 +7,7 @@ script_dir=`pwd`; #get script directory in order to build the paths of the suppo
 r_hist_file=$script_dir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
 hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
+fav_file=$script_dir/.goto_favorites; #file containing the directories saved to favorites
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
 #
 function gotoDir {
@@ -135,29 +136,34 @@ open -a terminal;
 }
 #
 function gthist {
-# This function reads a line from the .goto_history file and feeds it as argument to the goto function so the user navigates to that directory
+# This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 #
-# Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
-if [[ ! -s "$hist_file" ]]; then
-    echo 'Empty history file!';
+# Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
+if [[ "$1" == '-f' ]]; then
+    input_file="$fav_file";
+else
+    input_file="$hist_file";
+fi
+if [[ ! -s "$input_file" ]]; then
+    echo "File $input_file is empty!";
     return 1;
 fi
-function displayHistory {
+function displayInputFile {
     clear;
-    cat -n "$hist_file";
+    cat -n "$input_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
-    echo 'Enter q or Q to quit, c or C to clear the history file';
+    echo 'Enter q or Q to quit, c or C to flush the input file content';
     echo;
 }
-displayHistory;
+displayInputFile;
 read dir_nr;
 #
 # Step 1: check the input entered by user. If should be either:
 # - a number between 1 and and the number of entries contained in the file
 # - a character that triggers flushing the content of the history file or quitting the function
 #
-tempVar=`wc -l "$hist_file"`;
+tempVar=`wc -l "$input_file"`;
 currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
 while [[ '1' == '1' ]];
 do
@@ -170,28 +176,32 @@ do
 	echo 'Aborted!';
 	return 0;
     elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
-	> "$hist_file";
-	> "$r_hist_file";
-	> "$p_hist_file";
+	if [[ "$1" == '-f' ]]; then
+	    > "$fav_file";
+	else
+	    > "$hist_file";
+	    > "$r_hist_file";
+	    > "$p_hist_file";
+	fi
 	clear;
-	echo 'The history file content has been flushed.';
+	echo "Content of file $input_file has been flushed.";
 	return 0;
     else
-	displayHistory;
+	displayInputFile;
 	echo 'Invalid value! Please try again.';
 	echo;
 	read dir_nr;
     fi
 done
 #
-# Step 2: read the line from the history file
+# Step 2: read the line from the input file
 #
-dir_path=`sed "$dir_nr"'q;d' "$hist_file"`;
+dir_path=`sed "$dir_nr"'q;d' "$input_file"`;
 #
-# Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function (this check is done for the situation when only a part of 10 lines are contained in the history file as the user has navigated to less than 10 directories) 
+# Step 3: if the line of the input file contains a valid directory path, then it is fed as argument to the goto function
 #
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error! No valid directory on line $dir_nr of $hist_file.";
+    echo "Error! No valid directory on line $dir_nr of $input_file.";
     echo 'The directory might have been moved or deleted.';
     return 1;
 fi
