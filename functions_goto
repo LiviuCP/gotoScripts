@@ -232,3 +232,36 @@ fi
 gotoDir "$dir_path";
 return 0;
 }
+
+function addToFavorites {
+# Step 1: check if the user entered an argument or not
+# - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
+# - if no argument was entered, the current directory will be added to favorites
+if [[ ! -z "$1" ]]; then
+    if [[ ! -d "$1" ]]; then
+	echo 'The directory does not exist or has been deleted. Cannot add to favorites.';
+	return 1;
+    fi
+    cd "$1";
+    dir_to_add=`pwd`;
+    cd - > /dev/null;
+else
+    dir_to_add=`pwd`;
+fi
+# Step 2: append the path to the favorites file (create it if it does not exist)
+if [[  -f "$fav_file" ]]; then
+    grep -x $dir_to_add "$fav_file" > /dev/null;
+    if [[ $? != 0 ]]; then
+	echo $dir_to_add >> "$fav_file";
+	echo "Directory $dir_to_add added to favorites";
+	return 0;
+    else
+	echo "Directory $dir_to_add already added to favorites";
+	return 1;
+    fi
+else
+    echo $dir_to_add >> "$fav_file";
+    echo "Directory $dir_to_add added to favorites";
+    return 0
+fi
+}
