@@ -140,7 +140,7 @@ function gthist {
 # Step 0: display the history file and prompt the user to choose one of the entries (or clear the history file/quit)
 if [[ ! -s "$hist_file" ]]; then
     echo 'Empty history file!';
-    return 0; 
+    return 1;
 fi
 function displayHistory {
     clear;
@@ -195,7 +195,7 @@ if [[ ! -d "$dir_path" ]]; then
     echo 'The directory might have been moved or deleted.';
     return 1;
 fi
-goto "$dir_path";
+gotoDir "$dir_path";
 return 0; 
 }
 
