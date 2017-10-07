@@ -6,6 +6,7 @@
 script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
 r_hist_file=$script_dir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
+e_hist_file=$script_dir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
 hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 fav_file=$script_dir/.goto_favorites; #file containing the directories saved to favorites
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
@@ -234,6 +235,8 @@ return 0;
 }
 
 function addToFavorites {
+#temporary file used for updating the persistent history file if required
+temp_file=$script_dir/.temp;
 # Step 1: check if the user entered an argument or not
 # - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
 # - if no argument was entered, the current directory will be added to favorites
@@ -248,12 +251,25 @@ if [[ ! -z "$1" ]]; then
 else
     dir_to_add=`pwd`;
 fi
+
 # Step 2: append the path to the favorites file (create it if it does not exist)
 if [[  -f "$fav_file" ]]; then
     grep -x "$dir_to_add" "$fav_file" > /dev/null;
     if [[ $? != 0 ]]; then
 	echo $dir_to_add >> "$fav_file";
 	echo "Directory $dir_to_add added to favorites";
+	# check if the entry is included in the persistent history file (if yes, move to the excluded history file and re-sort the persistent history file)
+	entryToExclude=`grep "$dir_to_add" "$p_hist_file"`;
+	if [[ $? == 0 ]]; then
+	    grep -v "$entryToExclude" "$p_hist_file" > "$temp_file";
+	    # normally sorting would not be required (the persistent history file is already sorted and should remain so; it's just a safety precaution)
+	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+	    rm "$temp_file";
+	    echo "$entryToExclude" >> "$e_hist_file";
+	else
+	    # if file is not already included in persistent history, just add it to the excluded history file (with number of visits 0 as the directory hasn't been visited yet)
+	    echo "$dir_to_add"';0' >> "$e_hist_file";
+	fi
 	return 0;
     else
 	echo "Directory $dir_to_add already added to favorites";
