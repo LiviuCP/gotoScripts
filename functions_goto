@@ -305,7 +305,7 @@ read dir_nr;
 # - a number between 1 and and the number of entries contained in the file
 # - a character that triggers quitting the function
 #
-tempVar=`wc -l "$input_file"`;
+tempVar=`wc -l "$fav_file"`;
 currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
 while [[ '1' == '1' ]];
 do
