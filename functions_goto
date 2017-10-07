@@ -253,23 +253,26 @@ else
 fi
 
 # Step 2: append the path to the favorites file (create it if it does not exist)
+function excludeFromPersistentHistory {
+    # check if the entry is included in the persistent history file (if yes, move to the excluded history file and re-sort the persistent history file)
+    entryToExclude=`grep "$dir_to_add"';' "$p_hist_file"`;
+    if [[ $? == 0 ]]; then
+	grep -v "$entryToExclude" "$p_hist_file" > "$temp_file";
+	# normally sorting would not be required (the persistent history file is already sorted and should remain so; it's just a safety precaution)
+	sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+	rm "$temp_file";
+	echo "$entryToExclude" >> "$e_hist_file";
+    else
+	# if file is not already included in persistent history, just add it to the excluded history file (with number of visits 0 as the directory hasn't been visited yet)
+	echo "$dir_to_add"';0' >> "$e_hist_file";
+    fi
+}
 if [[  -f "$fav_file" ]]; then
     grep -x "$dir_to_add" "$fav_file" > /dev/null;
     if [[ $? != 0 ]]; then
 	echo $dir_to_add >> "$fav_file";
 	echo "Directory $dir_to_add added to favorites";
-	# check if the entry is included in the persistent history file (if yes, move to the excluded history file and re-sort the persistent history file)
-	entryToExclude=`grep "$dir_to_add" "$p_hist_file"`;
-	if [[ $? == 0 ]]; then
-	    grep -v "$entryToExclude" "$p_hist_file" > "$temp_file";
-	    # normally sorting would not be required (the persistent history file is already sorted and should remain so; it's just a safety precaution)
-	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-	    rm "$temp_file";
-	    echo "$entryToExclude" >> "$e_hist_file";
-	else
-	    # if file is not already included in persistent history, just add it to the excluded history file (with number of visits 0 as the directory hasn't been visited yet)
-	    echo "$dir_to_add"';0' >> "$e_hist_file";
-	fi
+	excludeFromPersistentHistory;
 	return 0;
     else
 	echo "Directory $dir_to_add already added to favorites";
@@ -278,7 +281,8 @@ if [[  -f "$fav_file" ]]; then
 else
     echo $dir_to_add >> "$fav_file";
     echo "Directory $dir_to_add added to favorites";
-    return 0
+    excludeFromPersistentHistory;
+    return 0;
 fi
 }
 
