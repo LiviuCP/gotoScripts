@@ -287,7 +287,7 @@ fi
 }
 
 function removeFromFavorites {
-#temporary file used for updating the favorites file when an entry is removed
+#temporary file used for updating the favorites file and the excluded file when an entry is removed
 temp_file=$script_dir/.temp;
 # Step 1: check if the favorites file exists
 if [[ ! -f "$fav_file" ]]; then
@@ -328,7 +328,20 @@ do
 	read dir_nr;
     fi
 done
-# Step 4: delete the entry
+# Step 4: remove the entry from the excluded history file
+fav_dir_to_remove=`sed "$dir_nr"'q;d' "$fav_file"`;
+excl_dir_to_remove=`grep "$fav_dir_to_remove"';' "$e_hist_file"`;
+visitsCount=`echo "$excl_dir_to_remove" | cut -f 2 -d ';'`;
+grep -v "$excl_dir_to_remove" "$e_hist_file" > "$temp_file";
+mv "$temp_file" "$e_hist_file";
+# Also move the entry back to the persistent history file if it has at least one visit
+if [[ $visitsCount -gt 0 ]]; then
+    echo $excl_dir_to_remove >> "$p_hist_file";
+    # Always sort the persistent history file when it is modified
+    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+    mv "$temp_file" "$p_hist_file";
+fi
+# Step 5: delete the entry
 sed "$dir_nr"'d' "$fav_file" > "$temp_file";
 mv "$temp_file" "$fav_file";
 clear;
