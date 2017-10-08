@@ -306,9 +306,13 @@ fi
 function removeFromFavorites {
 #temporary file used for updating the favorites file and the excluded file when an entry is removed
 temp_file=$script_dir/.temp;
-# Step 1: check if the favorites file exists
+# Step 1: check if the favorites file exists and is not empty
 if [[ ! -f "$fav_file" ]]; then
     echo "Error! The favorites file $fav_file does not exist or has been deleted";
+    return 1;
+fi
+if [[ ! -s "$fav_file" ]]; then
+    echo "File $fav_file is empty! Nothing to remove";
     return 1;
 fi
 # Step 2: display the file and prompt the user to choose the line to be deleted
