@@ -110,23 +110,40 @@ echo "$prev_dir" > "$r_hist_file";
 cat "$temp_file" >> "$r_hist_file";
 rm "$temp_file"; #remove the temporary file, no longer needed
 #
-# Step 6: update the persistent history file, then sort it in reverse order by number of visits
-#
-p_hist_matched_row=`grep "$prev_dir;" "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
-# if path already exists in the persistent history file, increase the number of visits (otherwise append to end of file)
+# Step 6: check if the entry already exists in the persistent history file
+# - if yes: update the persistent history file, then sort it in reverse order by number of visits
+# - if not, check if included in excluded history file
+#   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
+#   - if not: add the entry to persistent history file and sort the file
+p_hist_matched_row=`grep "$prev_dir"';' "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
 if [[ $? == 0 ]]; then
     extracted_path=`echo $p_hist_matched_row | cut -f 1 -d ';'`;
-    visit_count=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
-    let "visit_count=visit_count+1";
-    p_hist_replacing_row="$extracted_path"';'"$visit_count";
+    visitsCount=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
+    let "visitsCount=visitsCount+1";
+    p_hist_replacing_row="$extracted_path"';'"$visitsCount";
     sed -e "s+$p_hist_matched_row+$p_hist_replacing_row+g" "$p_hist_file" > "$temp_file";
     mv "$temp_file" "$p_hist_file";
+    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+    mv "$temp_file" "$p_hist_file";
+elif [[ -f "$e_hist_file" ]]; then
+    e_hist_matched_row=`grep "$prev_dir"';' "$e_hist_file"`;
+    if [[ $? == 0 ]]; then
+	extracted_path=`echo $e_hist_matched_row | cut -f 1 -d ';'`;
+	visitsCount=`echo $e_hist_matched_row | cut -f 2 -d ';'`;
+	let "visitsCount=visitsCount+1";
+	e_hist_replacing_row="$extracted_path"';'"$visitsCount";
+	sed -e "s+$e_hist_matched_row+$e_hist_replacing_row+g" "$e_hist_file" > "$temp_file";
+	mv "$temp_file" "$e_hist_file";
+    else
+	echo "$prev_dir;1" >> "$p_hist_file";
+	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+	mv "$temp_file" "$p_hist_file";
+    fi
 else
     echo "$prev_dir;1" >> "$p_hist_file";
+    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+    mv "$temp_file" "$p_hist_file";
 fi
-# sort the paths by number of visits (most visited dirs come first)
-sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-mv "$temp_file" "$p_hist_file";
 #
 # Step 7: consolidate the recent and persistent history into a single file for a unified user access
 #
