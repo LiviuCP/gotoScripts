@@ -97,7 +97,7 @@ if [[ $current_dir == $prev_dir ]]; then
     return 0;
 fi
 nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
-matched_row=`grep -xn "$prev_dir" "$r_hist_file"`;
+matched_row=`grep -xn "$current_dir" "$r_hist_file"`;
 if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
     matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
     sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
@@ -106,7 +106,7 @@ elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then #if number of rows is at maxim
 else
     cp "$r_hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency
 fi
-echo "$prev_dir" > "$r_hist_file";
+echo "$current_dir" > "$r_hist_file";
 cat "$temp_file" >> "$r_hist_file";
 rm "$temp_file"; #remove the temporary file, no longer needed
 #
@@ -115,7 +115,7 @@ rm "$temp_file"; #remove the temporary file, no longer needed
 # - if not, check if included in excluded history file
 #   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
 #   - if not: add the entry to persistent history file and sort the file
-p_hist_matched_row=`grep "$prev_dir"';' "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
+p_hist_matched_row=`grep "$current_dir"';' "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
 if [[ $? == 0 ]]; then
     extracted_path=`echo $p_hist_matched_row | cut -f 1 -d ';'`;
     visitsCount=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
@@ -126,7 +126,7 @@ if [[ $? == 0 ]]; then
     sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
     mv "$temp_file" "$p_hist_file";
 elif [[ -f "$e_hist_file" ]]; then
-    e_hist_matched_row=`grep "$prev_dir"';' "$e_hist_file"`;
+    e_hist_matched_row=`grep "$current_dir"';' "$e_hist_file"`;
     if [[ $? == 0 ]]; then
 	extracted_path=`echo $e_hist_matched_row | cut -f 1 -d ';'`;
 	visitsCount=`echo $e_hist_matched_row | cut -f 2 -d ';'`;
@@ -135,12 +135,12 @@ elif [[ -f "$e_hist_file" ]]; then
 	sed -e "s+$e_hist_matched_row+$e_hist_replacing_row+g" "$e_hist_file" > "$temp_file";
 	mv "$temp_file" "$e_hist_file";
     else
-	echo "$prev_dir;1" >> "$p_hist_file";
+	echo "$current_dir;1" >> "$p_hist_file";
 	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	mv "$temp_file" "$p_hist_file";
     fi
 else
-    echo "$prev_dir;1" >> "$p_hist_file";
+    echo "$current_dir;1" >> "$p_hist_file";
     sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
     mv "$temp_file" "$p_hist_file";
 fi
