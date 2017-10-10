@@ -171,6 +171,7 @@ function displayInputFile {
     cat -n "$input_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
+    echo 'Enter t or T to toggle to the other menu (favorites or consolidated history depending on the current menu)';
     echo 'Enter q or Q to quit, c or C to flush the input file content';
     echo;
 }
@@ -193,6 +194,14 @@ do
 	clear;
 	echo 'Aborted!';
 	return 0;
+    # toggle to the other menu if the user does not find the required entry
+    elif [[ $dir_nr == 't' ]] || [[ $dir_nr == 'T' ]]; then
+	if [[ "$1" == '-f' ]]; then
+	    gthist;
+	else
+	    gthist -f;
+	fi
+	return $?;
     elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
 	if [[ "$1" == '-f' ]]; then
 	    > "$fav_file";
