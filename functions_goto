@@ -9,6 +9,8 @@ p_hist_file=$script_dir/.persistent_history; #file containing each visited direc
 e_hist_file=$script_dir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
 hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 fav_file=$script_dir/.goto_favorites; #file containing the directories saved to favorites
+r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
+p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
 #
 function gotoDir {
@@ -20,8 +22,6 @@ delay_before_close=0.2; #number of seconds of delay before using osascript to cl
 delay_after_reopen=0.3; #number of seconds of delay after re-opening the Finder window
 delay_error_reopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
 temp_file=$script_dir/.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
-r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
-p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
 
 clear; 
 #
@@ -287,6 +287,10 @@ function excludeFromPersistentHistory {
 	# normally sorting would not be required (the persistent history file is already sorted and should remain so; it's just a safety precaution)
 	sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
 	rm "$temp_file";
+	# history should be consolidated again
+	cat "$r_hist_file" > "$hist_file";
+	head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	# update excluded history file
 	echo "$entryToExclude" >> "$e_hist_file";
     else
 	# if file is not already included in persistent history, just add it to the excluded history file (with number of visits 0 as the directory hasn't been visited yet)
@@ -370,6 +374,9 @@ if [[ $visitsCount -gt 0 ]]; then
     # Always sort the persistent history file when it is modified
     sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
     mv "$temp_file" "$p_hist_file";
+    # history should be consolidated again
+    cat "$r_hist_file" > "$hist_file";
+    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 fi
 # Step 5: delete the entry
 sed "$dir_nr"'d' "$fav_file" > "$temp_file";
