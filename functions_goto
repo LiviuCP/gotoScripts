@@ -156,26 +156,41 @@ open -a terminal;
 function gthist {
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 #
-# Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
-if [[ "$1" == '-f' ]]; then
-    input_file="$fav_file";
-else
-    input_file="$hist_file";
-fi
-if [[ ! -s "$input_file" ]]; then
-    echo "File $input_file is empty!";
-    return 1;
-fi
-function displayInputFile {
+# Helper functions for display
+function displayHistory {
     clear;
-    cat -n "$input_file";
+    echo 'NAVIGATION HISTORY';
+    cat -n "$hist_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
     echo 'Enter t or T to toggle to the other menu (favorites or consolidated history depending on the current menu)';
     echo 'Enter q or Q to quit, c or C to flush the input file content';
     echo;
 }
-displayInputFile;
+function displayFavorites {
+    clear;
+    echo 'FAVORITE DIRECTORIES';
+    cat -n "$fav_file";
+    echo;
+    echo 'Enter the number of the directory you want to navigate to';
+    echo 'Enter t or T to toggle to the other menu (favorites or consolidated history depending on the current menu)';
+    echo 'Enter q or Q to quit, c or C to flush the input file content';
+    echo;
+}
+#
+# Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
+if [[ "$1" == '-f' ]]; then
+    input_file="$fav_file";
+    display='displayFavorites';
+else
+    input_file="$hist_file";
+    display='displayHistory';
+fi
+if [[ ! -s "$input_file" ]]; then
+    echo "File $input_file is empty!";
+    return 1;
+fi
+eval "$display";
 read dir_nr;
 #
 # Step 1: check the input entered by user. If should be either:
