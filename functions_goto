@@ -158,23 +158,33 @@ function gthist {
 #
 # Helper functions for display
 function displayHistory {
+    tempVar1=`wc -l "$r_hist_file"`;
+    tempVar2=`wc -l "$p_hist_file"`;
+    rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
+    pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
     clear;
     echo 'NAVIGATION HISTORY';
-    cat -n "$hist_file";
+    echo;
+    echo '-- RECENTLY VISITED --';
+    cat -n "$hist_file" | head -"$rHistEntries";
+    echo;
+    echo '-- MOST VISITED --';
+    cat -n "$hist_file" | tail -"$pHistEntries";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
-    echo 'Enter t or T to toggle to the other menu (favorites or consolidated history depending on the current menu)';
-    echo 'Enter q or Q to quit, c or C to flush the input file content';
+    echo 'Enter t or T to toggle to the favorite directories menu';
+    echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
     echo;
 }
 function displayFavorites {
     clear;
     echo 'FAVORITE DIRECTORIES';
+    echo;
     cat -n "$fav_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
-    echo 'Enter t or T to toggle to the other menu (favorites or consolidated history depending on the current menu)';
-    echo 'Enter q or Q to quit, c or C to flush the input file content';
+    echo 'Enter t or T to toggle to the navigation history menu';
+    echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
     echo;
 }
 #
