@@ -9,6 +9,7 @@ p_hist_file=$script_dir/.persistent_history; #file containing each visited direc
 e_hist_file=$script_dir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
 hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 fav_file=$script_dir/.goto_favorites; #file containing the directories saved to favorites
+format_file=$script_dir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
 r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
 p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
@@ -157,19 +158,32 @@ function gthist {
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 #
 # Helper functions for display
+function formatFileContent {
+# formats the content of the consolidated history file or the favorites file; output is written into a file that is used by one of the display functions listed below
+    inputFile=$1;
+    > "$format_file";
+    while read currentEntry;
+    do
+	currentEntryFormatted=`basename "$currentEntry"`' : '`dirname "$currentEntry"`;
+	echo $currentEntryFormatted >> "$format_file";
+    done < "$inputFile"
+}
 function displayHistory {
     tempVar1=`wc -l "$r_hist_file"`;
     tempVar2=`wc -l "$p_hist_file"`;
     rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
     pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
+    formatFileContent "$hist_file";
     clear;
     echo 'NAVIGATION HISTORY';
     echo;
     echo '-- RECENTLY VISITED --';
-    cat -n "$hist_file" | head -"$rHistEntries";
+    echo;
+    cat -n "$format_file" | head -"$rHistEntries";
     echo;
     echo '-- MOST VISITED --';
-    cat -n "$hist_file" | tail -"$pHistEntries";
+    echo;
+    cat -n "$format_file" | tail -"$pHistEntries";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
     echo 'Enter t or T to toggle to the favorite directories menu';
@@ -177,10 +191,11 @@ function displayHistory {
     echo;
 }
 function displayFavorites {
+    formatFileContent "$fav_file";
     clear;
     echo 'FAVORITE DIRECTORIES';
     echo;
-    cat -n "$fav_file";
+    cat -n "$format_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
     echo 'Enter t or T to toggle to the navigation history menu';

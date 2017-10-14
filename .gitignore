@@ -1,5 +1,6 @@
 .goto_favorites
 .goto_history
+.goto_format
 .recent_history
 .persistent_history
 .excluded_history
