@@ -202,6 +202,35 @@ function displayFavorites {
     echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
     echo;
 }
+# Helper function for handling case when the directory chosen for visiting does not exist
+function handleMissingDirectory {
+    clear;
+    echo "Error! No valid directory on line $dir_nr of $input_file.";
+    echo 'The directory might have been moved or deleted.';
+    while [[ '1' == '1' ]]; do
+	echo;
+	echo 'Please choose the required action: ';
+	echo 'r or R: remove the directory from the menus';
+	echo 'm or M: map to an existing directory';
+	echo 'q or Q: quit';
+	echo;
+	read userChoice;
+	if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
+	    echo 'Under construction: remove the directory from the menus';
+	    break;
+	elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
+	    echo 'Under construction: map the directory to a new directory';
+	    break;
+	elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
+	    echo 'Aborted!';
+	    return 0;
+	else
+	    clear;
+	    echo 'Invalid option. Please try again';
+	fi
+    done
+    return 0;
+}
 #
 # Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
 if [[ "$1" == '-f' ]]; then
@@ -268,8 +297,7 @@ dir_path=`sed "$dir_nr"'q;d' "$input_file"`;
 # Step 3: if the line of the input file contains a valid directory path, then it is fed as argument to the goto function
 #
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error! No valid directory on line $dir_nr of $input_file.";
-    echo 'The directory might have been moved or deleted.';
+    handleMissingDirectory;
     return 1;
 fi
 gotoDir "$dir_path";
