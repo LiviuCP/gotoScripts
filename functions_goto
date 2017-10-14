@@ -216,11 +216,28 @@ function handleMissingDirectory {
 	echo;
 	read userChoice;
 	if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
-	    echo 'Under construction: remove the directory from the menus';
-	    break;
+	    # remove the entry from recent history (if there)
+	    grep -v "$dir_path" "$r_hist_file" > "$temp_file";
+	    mv "$temp_file" "$r_hist_file";
+	    # if consolidated history was queried, remove the entry from persistent history
+	    if [[ "$input_file" == "$hist_file" ]]; then
+		grep -v "$dir_path"';' "$p_hist_file" > "$temp_file";
+		sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+		rm "$temp_file";
+	    # otherwise remove the entry from favorites file and excluded history file
+	    else
+		grep -v "$dir_path"';' "$e_hist_file" > "$temp_file";
+		mv "$temp_file" "$e_hist_file";
+		grep -v "$dir_path" "$fav_file" > "$temp_file";
+		mv "$temp_file" "$fav_file";
+	    fi
+	    # history should be consolidated again
+	    cat "$r_hist_file" > "$hist_file";
+	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	    return 0;
 	elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
 	    echo 'Under construction: map the directory to a new directory';
-	    break;
+	    return 0;
 	elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
 	    echo 'Aborted!';
 	    return 0;
@@ -229,7 +246,6 @@ function handleMissingDirectory {
 	    echo 'Invalid option. Please try again';
 	fi
     done
-    return 0;
 }
 #
 # Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
