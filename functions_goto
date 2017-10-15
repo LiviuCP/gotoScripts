@@ -236,7 +236,68 @@ function handleMissingDirectory {
 	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 	    return 0;
 	elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
-	    echo 'Under construction: map the directory to a new directory';
+	    clear;
+	    echo 'Enter the name of the replacing directory: ';
+	    read replacing_dir;
+	    # the mapping directory should exist and be a valid directory
+	    if [[ ! -d "$replacing_dir" ]]; then
+		echo "Directory $replacing_dir does not exist or has been deleted. Cannot map the missing directory $dir_path."
+		return 1;
+	    fi
+	    # ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
+	    cd "$replacing_dir";
+	    replacing_dir=`pwd`;
+	    cd - > /dev/null;
+	    # identify the file where the path of the directory to be replaced lives
+	    if [[ "$input_file" == "$hist_file" ]]; then
+		replaced_dir_file="$p_hist_file";
+	    else
+		replaced_dir_file="$e_hist_file";
+	    fi
+	    # check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
+	    visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
+	    grep -x "$replacing_dir" "$hist_file";
+	    if [[ $? == 0 ]]; then
+		visits_file="$p_hist_file";
+	    else
+		grep -x "$replacing_dir" "$fav_file";
+		if [[ $? == 0 ]]; then
+		    visits_file="$e_hist_file";
+		fi
+	    fi
+	    # get number of times the replacing directory has been visited (-1 if not visited/not added to favorites)
+	    if [[ "$visits_file" == "$p_hist_file" ]]; then
+		replacingDirEntry=`grep "$replacing_dir"';' "$p_hist_file"`;
+		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+	    elif [[ "$visits_file" == "$e_hist_file" ]]; then
+		replacingDirEntry=`grep "$replacing_dir"';' "$e_hist_file"`;
+		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+	    else
+		replacingDirVisits='-1';
+	    fi
+	    # remove the entry from recent history (if there)
+	    grep -v "$dir_path" "$r_hist_file" > "$temp_file";
+	    mv "$temp_file" "$r_hist_file";
+	    # do the actual mapping operation
+	    # - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
+	    if [[ $replacingDirVisits == '-1' ]]; then
+		replacedDirMatchedRow=`grep "$dir_path"';' "$replaced_dir_file"`;
+		visitsCount=`echo $replacedDirMatchedRow | cut -f 2 -d ';'`;
+		replacedDirReplacingRow="$replacing_dir"';'"$visitsCount";
+		sed -e "s+$replacedDirMatchedRow+$replacedDirReplacingRow+g" "$replaced_dir_file" > "$temp_file";
+		mv "$temp_file" "$replaced_dir_file";
+		# if missing dir had been in the persistent history file: re-sort file
+		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
+		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+		    mv "$temp_file" "$p_hist_file";
+	        # if missing dir had been in the excluded history file: re-create favorites file after update
+		else
+		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		fi
+	    fi
+	    # history should be consolidated again
+	    cat "$r_hist_file" > "$hist_file";
+	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 	    return 0;
 	elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
 	    echo 'Aborted!';
