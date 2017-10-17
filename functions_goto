@@ -39,10 +39,10 @@ if [[ ! -d $1 ]]; then
 fi
 #
 if [[ ! -f $r_hist_file ]]; then
-   touch "$r_hist_file"; #create the history file of the most recent visits if it does not already exist
+    > "$r_hist_file"; #create the history file of the most recent visits if it does not already exist
 fi
 if [[ ! -f $p_hist_file ]]; then
-    touch "$p_hist_file"; #same for the persistent history file
+    > "$p_hist_file"; #same for the persistent history file
 fi
 #
 # Step 2: memorize current directory and cd to the new directory
@@ -342,7 +342,7 @@ else
     display='displayHistory';
 fi
 if [[ ! -s "$input_file" ]]; then
-    echo "File $input_file is empty!";
+    echo "File $input_file does not exist or is empty!";
     return 1;
 fi
 eval "$display";
