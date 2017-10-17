@@ -375,6 +375,15 @@ do
     elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
 	if [[ "$1" == '-f' ]]; then
 	    > "$fav_file";
+	    # the content of the excluded history file (except unvisited dirs) should return to the persistent history file
+	    grep -v ';0' "$e_hist_file" >> "$p_hist_file";
+	    > "$e_hist_file";
+	    # as usual re-sort persistent history file when modifying it
+	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+	    mv "$temp_file" "$p_hist_file";
+	    # history should be consolidated again
+	    cat "$r_hist_file" > "$hist_file";
+	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 	else
 	    > "$hist_file";
 	    > "$r_hist_file";
