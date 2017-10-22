@@ -436,25 +436,25 @@ return 0;
 }
 
 function goToPrevDir {
-#
-# Step 1: check that the consolidated history file contains at least one entry (first entry is the one of the previous directory)
-#
-if [[ ! -s "$hist_file" ]]; then
-    echo 'Empty history file!';
+# Step 1: check that the recent history file contains at least one entry (first entry is considered the "current" directory)
+if [[ ! -s "$r_hist_file" ]]; then
+    echo 'No directory has been visited so far. There is no previous directory to visit.';
     return 1;
 fi
-#
-# Step 2: read the line from the history file
-#
-dir_path=`sed '1q;d' "$hist_file"`;
-#
-# Step 3: if the line contains a valid directory path, then it is fed as argument to the goto function
-#
+# Step 2: read the second line from the recent history file (this entry is considered the "previous" directory); check that the line is not empty
+dir_path=`sed '2q;d' "$r_hist_file"`;
+if [[ $dir_path == '' ]]; then
+    echo 'There is no previous directory.'; 
+    echo "Only `pwd` has been visited so far.";
+    return 1;
+fi
+# Step 3: check that the previously visited directory exists
 if [[ ! -d "$dir_path" ]]; then
-    echo "Error! No valid directory on line $dir_nr of $hist_file.";
+    echo "Invalid path: $dir_path";
     echo 'The directory might have been moved or deleted.';
     return 1;
 fi
+# Step 4: visit the directory
 gotoDir "$dir_path";
 return 0;
 }
