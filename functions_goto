@@ -393,7 +393,7 @@ do
 	echo "Content of file $input_file has been flushed.";
 	return 0;
     else
-	displayInputFile;
+	eval "$display";
 	echo 'Invalid value! Please try again.';
 	echo;
 	read dir_nr;
