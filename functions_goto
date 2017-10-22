@@ -163,7 +163,7 @@ function formatFileContent {
     > "$format_file";
     while read currentEntry;
     do
-	currentEntryFormatted=`basename "$currentEntry"`' : '`dirname "$currentEntry"`;
+	currentEntryFormatted=`basename "$currentEntry"`' : '"$currentEntry";
 	echo $currentEntryFormatted >> "$format_file";
     done < "$inputFile"
 }
@@ -185,7 +185,9 @@ function displayHistory {
     cat -n "$format_file" | tail -"$pHistEntries";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
-    echo 'Enter t or T to toggle to the favorite directories menu';
+    if [[ -s "$fav_file" ]]; then
+	echo 'Enter t or T to toggle to the favorite directories menu';
+    fi
     echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
     echo;
 }
@@ -197,7 +199,9 @@ function displayFavorites {
     cat -n "$format_file";
     echo;
     echo 'Enter the number of the directory you want to navigate to';
-    echo 'Enter t or T to toggle to the navigation history menu';
+    if [[ -s "$hist_file" ]]; then
+	echo 'Enter t or T to toggle to the navigation history menu';
+    fi
     echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
     echo;
 }
@@ -349,7 +353,7 @@ read dir_nr;
 #
 # Step 1: check the input entered by user. If should be either:
 # - a number between 1 and and the number of entries contained in the file
-# - a character that triggers flushing the content of the history file or quitting the function
+# - a character that triggers flushing the content of the favorites/history file, switching to the other file or quitting the function
 #
 tempVar=`wc -l "$input_file"`;
 currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
@@ -366,11 +370,28 @@ do
     # toggle to the other menu if the user does not find the required entry
     elif [[ $dir_nr == 't' ]] || [[ $dir_nr == 'T' ]]; then
 	if [[ "$1" == '-f' ]]; then
-	    gthist;
+	    if [[ ! -s "$hist_file" ]]; then
+		eval "$display";
+		echo "File $hist_file is empty! Toggling disabled";
+		echo 'Please enter one of the valid options listed above';
+		echo;
+		read dir_nr;
+	    else
+		gthist;
+		return $?;
+	    fi
 	else
-	    gthist -f;
+	    if [[ ! -s "$fav_file" ]]; then
+		eval "$display";
+		echo "File $fav_file is empty! Toggling disabled";
+		echo 'Please enter one of the valid options listed above';
+		echo;
+		read dir_nr;
+	    else
+		gthist -f;
+		return $?;
+	    fi
 	fi
-	return $?;
     elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
 	if [[ "$1" == '-f' ]]; then
 	    > "$fav_file";
@@ -392,7 +413,7 @@ do
 	echo "Content of file $input_file has been flushed.";
 	return 0;
     else
-	displayInputFile;
+	eval "$display";
 	echo 'Invalid value! Please try again.';
 	echo;
 	read dir_nr;
