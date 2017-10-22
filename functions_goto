@@ -164,7 +164,7 @@ function formatFileContent {
     > "$format_file";
     while read currentEntry;
     do
-	currentEntryFormatted=`basename "$currentEntry"`' : '`dirname "$currentEntry"`;
+	currentEntryFormatted=`basename "$currentEntry"`' : '"$currentEntry";
 	echo $currentEntryFormatted >> "$format_file";
     done < "$inputFile"
 }
