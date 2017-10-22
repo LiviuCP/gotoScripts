@@ -606,7 +606,7 @@ while [[ '1' == '1' ]]; do
     elif [[ $dir_to_visit == ':p' ]]; then
 	goToPrevDir;
     elif [[ $dir_to_visit == ':q' ]]; then
-	echo 'Aborted!';
+	echo 'You exited navigation mode';
 	return 0;
     else
 	echo 'Entered argument:'"$dir_to_visit";
