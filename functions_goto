@@ -13,6 +13,7 @@ format_file=$script_dir/.goto_format; #file used for formatting output (either t
 r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
 p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
+prev_dir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 #
 function gotoDir {
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
@@ -436,26 +437,11 @@ return 0;
 }
 
 function goToPrevDir {
-# Step 1: check that the recent history file contains at least one entry (first entry is considered the "current" directory)
-if [[ ! -s "$r_hist_file" ]]; then
-    echo 'No directory has been visited so far. There is no previous directory to visit.';
+if [[ $prev_dir == '' ]]; then
+    echo 'No directory had previously been visited in the current session!';
     return 1;
 fi
-# Step 2: read the second line from the recent history file (this entry is considered the "previous" directory); check that the line is not empty
-dir_path=`sed '2q;d' "$r_hist_file"`;
-if [[ $dir_path == '' ]]; then
-    echo 'There is no previous directory.'; 
-    echo "Only `pwd` has been visited so far.";
-    return 1;
-fi
-# Step 3: check that the previously visited directory exists
-if [[ ! -d "$dir_path" ]]; then
-    echo "Invalid path: $dir_path";
-    echo 'The directory might have been moved or deleted.';
-    return 1;
-fi
-# Step 4: visit the directory
-gotoDir "$dir_path";
+gotoDir "$prev_dir";
 return 0;
 }
 
