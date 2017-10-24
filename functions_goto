@@ -158,286 +158,286 @@ function gotoDir {
 function gthist {
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 #
-# Helper functions for display
-function formatFileContent {
-# formats the content of the consolidated history file or the favorites file; output is written into a file that is used by one of the display functions listed below
-    inputFile=$1;
-    > "$format_file";
-    while read currentEntry;
-    do
-	currentEntryFormatted=`basename "$currentEntry"`' : '"$currentEntry";
-	echo $currentEntryFormatted >> "$format_file";
-    done < "$inputFile"
-}
-#displays the consolidated history menu in a convenient manner for the user
-function displayHistory {
-    tempVar1=`wc -l "$r_hist_file"`;
-    tempVar2=`wc -l "$p_hist_file"`;
-    rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
-    pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
-    formatFileContent "$hist_file";
-    clear;
-    echo 'NAVIGATION HISTORY';
-    echo;
-    echo '-- RECENTLY VISITED --';
-    echo;
-    cat -n "$format_file" | head -"$rHistEntries";
-    echo;
-    echo '-- MOST VISITED --';
-    echo;
-    cat -n "$format_file" | tail -"$pHistEntries";
-    echo;
-    echo 'Enter the number of the directory you want to navigate to';
-    if [[ -s "$fav_file" ]]; then
-	echo 'Enter t or T to toggle to the favorite directories menu';
-    fi
-    echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
-    echo;
-}
-#displays the favorites menu in a different (tailor-made) manner from the history menu
-function displayFavorites {
-    formatFileContent "$fav_file";
-    clear;
-    echo 'FAVORITE DIRECTORIES';
-    echo;
-    cat -n "$format_file";
-    echo;
-    echo 'Enter the number of the directory you want to navigate to';
-    if [[ -s "$hist_file" ]]; then
-	echo 'Enter t or T to toggle to the navigation history menu';
-    fi
-    echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
-    echo;
-}
-# Helper function for handling case when the directory chosen for visiting does not exist
-function handleMissingDirectory {
-    clear;
-    echo "Error! No valid directory on line $dir_nr of $input_file.";
-    echo 'The directory might have been moved or deleted.';
-    while [[ '1' == '1' ]]; do
+    # Helper functions for display
+    function formatFileContent {
+	# formats the content of the consolidated history file or the favorites file; output is written into a file that is used by one of the display functions listed below
+	inputFile=$1;
+	> "$format_file";
+	while read currentEntry;
+	do
+	    currentEntryFormatted=`basename "$currentEntry"`' : '"$currentEntry";
+	    echo $currentEntryFormatted >> "$format_file";
+	done < "$inputFile"
+    }
+    #displays the consolidated history menu in a convenient manner for the user
+    function displayHistory {
+	tempVar1=`wc -l "$r_hist_file"`;
+	tempVar2=`wc -l "$p_hist_file"`;
+	rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
+	pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
+	formatFileContent "$hist_file";
+	clear;
+	echo 'NAVIGATION HISTORY';
 	echo;
-	echo 'Please choose the required action: ';
-	echo 'r or R: remove the directory from the menus';
-	echo 'm or M: map to an existing directory';
-	echo 'q or Q: quit';
+	echo '-- RECENTLY VISITED --';
 	echo;
-	read userChoice;
-	# user chooses to remove the entry from recent history (if there)
-	if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
-	    grep -v "$dir_path" "$r_hist_file" > "$temp_file";
-	    mv "$temp_file" "$r_hist_file";
-	    # if consolidated history had been queried, remove the entry from persistent history
-	    if [[ "$input_file" == "$hist_file" ]]; then
-		grep -v "$dir_path"';' "$p_hist_file" > "$temp_file";
-		sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-		rm "$temp_file";
-	    # otherwise remove the entry from favorites file and excluded history file
-	    else
-		grep -v "$dir_path"';' "$e_hist_file" > "$temp_file";
-		mv "$temp_file" "$e_hist_file";
-		grep -v "$dir_path" "$fav_file" > "$temp_file";
-		mv "$temp_file" "$fav_file";
-	    fi
-	    # history should be consolidated again
-	    cat "$r_hist_file" > "$hist_file";
-	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	    return 0;
-	# user chooses to replace the directory entry with another (existing) path
-	elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
-	    clear;
-	    echo 'Enter the name of the replacing directory: ';
-	    read replacing_dir;
-	    # the mapping directory should exist and be a valid directory
-	    if [[ ! -d "$replacing_dir" ]]; then
-		echo "Directory $replacing_dir does not exist or has been deleted. Cannot map the missing directory $dir_path."
-		return 1;
-	    fi
-	    # ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
-	    cd "$replacing_dir";
-	    replacing_dir=`pwd`;
-	    cd - > /dev/null;
-	    # identify the file where the path of the directory to be replaced lives
-	    if [[ "$input_file" == "$hist_file" ]]; then
-		replaced_dir_file="$p_hist_file";
-	    else
-		replaced_dir_file="$e_hist_file";
-	    fi
-	    # check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
-	    visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
-	    foundEntry=`grep "$replacing_dir"';' "$p_hist_file"`;
-	    if [[ $? == 0 ]]; then
-		visits_file="$p_hist_file";
-	    else
-		foundEntry=`grep "$replacing_dir"';' "$e_hist_file"`;
-		if [[ $? == 0 ]]; then
-		    visits_file="$e_hist_file";
-		fi
-	    fi
-	    # get number of times the replacing directory has been visited (-1 if not visited/not added to favorites)
-	    if [[ "$visits_file" == "$p_hist_file" ]]; then
-		replacingDirEntry=`grep "$replacing_dir"';' "$p_hist_file"`;
-		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
-	    elif [[ "$visits_file" == "$e_hist_file" ]]; then
-		replacingDirEntry=`grep "$replacing_dir"';' "$e_hist_file"`;
-		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
-	    else
-		replacingDirVisits='-1';
-	    fi
-	    # remove the entry from recent history (if there)
-	    grep -v "$dir_path" "$r_hist_file" > "$temp_file";
-	    mv "$temp_file" "$r_hist_file";
-	    # do the actual mapping operation
-	    replacedDirMatchedRow=`grep "$dir_path"';' "$replaced_dir_file"`;
-	    replacedDirVisits=`echo $replacedDirMatchedRow | cut -f 2 -d ';'`;
-	    # - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
-	    if [[ $replacingDirVisits == '-1' ]]; then
-		replacedDirReplacingRow="$replacing_dir"';'"$replacedDirVisits";
-		sed -e "s+$replacedDirMatchedRow+$replacedDirReplacingRow+g" "$replaced_dir_file" > "$temp_file";
-		mv "$temp_file" "$replaced_dir_file";
-		# if missing dir had been in the persistent history file: re-sort file
-		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
-		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-		    mv "$temp_file" "$p_hist_file";
-	        # if missing dir had been in the excluded history file: re-create favorites file after update
-		else
-		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		fi
-	    # - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
-	    else
-		# if the number of visits of the dir to be replaced exceeds the one of the replacing dir, then update the number of visits of the replacing dir to the higher figure
-		if [[ $replacingDirVisits -lt $replacedDirVisits ]]; then
-		    replacingDirPath=`echo $replacingDirEntry | cut -f 1 -d ';'`;
-		    replacingDirReplacingRow="$replacingDirPath"';'"$replacedDirVisits";
-		    sed -e "s+$replacingDirEntry+$replacingDirReplacingRow+g" "$visits_file" > "$temp_file";
-		    mv "$temp_file" "$visits_file";
-		fi
-		# remove the replaced directory from its file (either persistent history or excluded history file
-		grep -v "$dir_path"';' "$replaced_dir_file" > "$temp_file";
-		mv "$temp_file" "$replaced_dir_file";
-		# if missing dir had been in the persistent history file: re-sort file
-		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
-		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-		    mv "$temp_file" "$p_hist_file";
-	        # if missing dir had been in the excluded history file: re-create favorites file after update
-		else
-		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		fi
-	    fi
-	    # history should be consolidated again
-	    cat "$r_hist_file" > "$hist_file";
-	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	    # confirm mapping has been successfully performed
+	cat -n "$format_file" | head -"$rHistEntries";
+	echo;
+	echo '-- MOST VISITED --';
+	echo;
+	cat -n "$format_file" | tail -"$pHistEntries";
+	echo;
+	echo 'Enter the number of the directory you want to navigate to';
+	if [[ -s "$fav_file" ]]; then
+	    echo 'Enter t or T to toggle to the favorite directories menu';
+	fi
+	echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
+	echo;
+    }
+    #displays the favorites menu in a different (tailor-made) manner from the history menu
+    function displayFavorites {
+	formatFileContent "$fav_file";
+	clear;
+	echo 'FAVORITE DIRECTORIES';
+	echo;
+	cat -n "$format_file";
+	echo;
+	echo 'Enter the number of the directory you want to navigate to';
+	if [[ -s "$hist_file" ]]; then
+	    echo 'Enter t or T to toggle to the navigation history menu';
+	fi
+	echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
+	echo;
+    }
+    # Helper function for handling case when the directory chosen for visiting does not exist
+    function handleMissingDirectory {
+	clear;
+	echo "Error! No valid directory on line $dir_nr of $input_file.";
+	echo 'The directory might have been moved or deleted.';
+	while [[ '1' == '1' ]]; do
 	    echo;
-	    echo "Missing directory: $dir_path";
-	    echo "Replacing directory: $replacing_dir";
-	    return 0;
-	elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
+	    echo 'Please choose the required action: ';
+	    echo 'r or R: remove the directory from the menus';
+	    echo 'm or M: map to an existing directory';
+	    echo 'q or Q: quit';
+	    echo;
+	    read userChoice;
+	    # user chooses to remove the entry from recent history (if there)
+	    if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
+		grep -v "$dir_path" "$r_hist_file" > "$temp_file";
+		mv "$temp_file" "$r_hist_file";
+		# if consolidated history had been queried, remove the entry from persistent history
+		if [[ "$input_file" == "$hist_file" ]]; then
+		    grep -v "$dir_path"';' "$p_hist_file" > "$temp_file";
+		    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+		    rm "$temp_file";
+		    # otherwise remove the entry from favorites file and excluded history file
+		else
+		    grep -v "$dir_path"';' "$e_hist_file" > "$temp_file";
+		    mv "$temp_file" "$e_hist_file";
+		    grep -v "$dir_path" "$fav_file" > "$temp_file";
+		    mv "$temp_file" "$fav_file";
+		fi
+		# history should be consolidated again
+		cat "$r_hist_file" > "$hist_file";
+		head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+		return 0;
+		# user chooses to replace the directory entry with another (existing) path
+	    elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
+		clear;
+		echo 'Enter the name of the replacing directory: ';
+		read replacing_dir;
+		# the mapping directory should exist and be a valid directory
+		if [[ ! -d "$replacing_dir" ]]; then
+		    echo "Directory $replacing_dir does not exist or has been deleted. Cannot map the missing directory $dir_path."
+		    return 1;
+		fi
+		# ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
+		cd "$replacing_dir";
+		replacing_dir=`pwd`;
+		cd - > /dev/null;
+		# identify the file where the path of the directory to be replaced lives
+		if [[ "$input_file" == "$hist_file" ]]; then
+		    replaced_dir_file="$p_hist_file";
+		else
+		    replaced_dir_file="$e_hist_file";
+		fi
+		# check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
+		visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
+		foundEntry=`grep "$replacing_dir"';' "$p_hist_file"`;
+		if [[ $? == 0 ]]; then
+		    visits_file="$p_hist_file";
+		else
+		    foundEntry=`grep "$replacing_dir"';' "$e_hist_file"`;
+		    if [[ $? == 0 ]]; then
+			visits_file="$e_hist_file";
+		    fi
+		fi
+		# get number of times the replacing directory has been visited (-1 if not visited/not added to favorites)
+		if [[ "$visits_file" == "$p_hist_file" ]]; then
+		    replacingDirEntry=`grep "$replacing_dir"';' "$p_hist_file"`;
+		    replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+		elif [[ "$visits_file" == "$e_hist_file" ]]; then
+		    replacingDirEntry=`grep "$replacing_dir"';' "$e_hist_file"`;
+		    replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+		else
+		    replacingDirVisits='-1';
+		fi
+		# remove the entry from recent history (if there)
+		grep -v "$dir_path" "$r_hist_file" > "$temp_file";
+		mv "$temp_file" "$r_hist_file";
+		# do the actual mapping operation
+		replacedDirMatchedRow=`grep "$dir_path"';' "$replaced_dir_file"`;
+		replacedDirVisits=`echo $replacedDirMatchedRow | cut -f 2 -d ';'`;
+		# - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
+		if [[ $replacingDirVisits == '-1' ]]; then
+		    replacedDirReplacingRow="$replacing_dir"';'"$replacedDirVisits";
+		    sed -e "s+$replacedDirMatchedRow+$replacedDirReplacingRow+g" "$replaced_dir_file" > "$temp_file";
+		    mv "$temp_file" "$replaced_dir_file";
+		    # if missing dir had been in the persistent history file: re-sort file
+		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
+			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+			mv "$temp_file" "$p_hist_file";
+			# if missing dir had been in the excluded history file: re-create favorites file after update
+		    else
+			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		    fi
+		    # - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
+		else
+		    # if the number of visits of the dir to be replaced exceeds the one of the replacing dir, then update the number of visits of the replacing dir to the higher figure
+		    if [[ $replacingDirVisits -lt $replacedDirVisits ]]; then
+			replacingDirPath=`echo $replacingDirEntry | cut -f 1 -d ';'`;
+			replacingDirReplacingRow="$replacingDirPath"';'"$replacedDirVisits";
+			sed -e "s+$replacingDirEntry+$replacingDirReplacingRow+g" "$visits_file" > "$temp_file";
+			mv "$temp_file" "$visits_file";
+		    fi
+		    # remove the replaced directory from its file (either persistent history or excluded history file
+		    grep -v "$dir_path"';' "$replaced_dir_file" > "$temp_file";
+		    mv "$temp_file" "$replaced_dir_file";
+		    # if missing dir had been in the persistent history file: re-sort file
+		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
+			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+			mv "$temp_file" "$p_hist_file";
+			# if missing dir had been in the excluded history file: re-create favorites file after update
+		    else
+			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		    fi
+		fi
+		# history should be consolidated again
+		cat "$r_hist_file" > "$hist_file";
+		head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+		# confirm mapping has been successfully performed
+		echo;
+		echo "Missing directory: $dir_path";
+		echo "Replacing directory: $replacing_dir";
+		return 0;
+	    elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
+		echo 'Aborted!';
+		return 0;
+	    else
+		clear;
+		echo 'Invalid option. Please try again';
+	    fi
+	done
+    }
+    #
+    # Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
+    if [[ "$1" == '-f' ]]; then
+	input_file="$fav_file";
+	display='displayFavorites';
+    else
+	input_file="$hist_file";
+	display='displayHistory';
+    fi
+    if [[ ! -s "$input_file" ]]; then
+	echo "File $input_file does not exist or is empty!";
+	return 1;
+    fi
+    eval "$display";
+    read dir_nr;
+    #
+    # Step 1: check the input entered by user. If should be either:
+    # - a number between 1 and and the number of entries contained in the file
+    # - a character that triggers flushing the content of the favorites/history file, switching to the other file or quitting the function
+    #
+    tempVar=`wc -l "$input_file"`;
+    currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
+    while [[ '1' == '1' ]];
+    do
+	if [[ $dir_nr =~  $nonNegativeInteger     ]] &&
+	       [[ $dir_nr -ge 1                       ]] &&
+	       [[ $dir_nr -le $currentNumberOfEntries ]]; then
+	    break;
+	elif [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
+	    clear;
 	    echo 'Aborted!';
 	    return 0;
-	else
+	    # toggle to the other menu if the user chooses so
+	elif [[ $dir_nr == 't' ]] || [[ $dir_nr == 'T' ]]; then
+	    if [[ "$1" == '-f' ]]; then
+		if [[ ! -s "$hist_file" ]]; then
+		    eval "$display";
+		    echo "File $hist_file is empty! Toggling disabled";
+		    echo 'Please enter one of the valid options listed above';
+		    echo;
+		    read dir_nr;
+		else
+		    gthist;
+		    return $?;
+		fi
+	    else
+		if [[ ! -s "$fav_file" ]]; then
+		    eval "$display";
+		    echo "File $fav_file is empty! Toggling disabled";
+		    echo 'Please enter one of the valid options listed above';
+		    echo;
+		    read dir_nr;
+		else
+		    gthist -f;
+		    return $?;
+		fi
+	    fi
+	    # clear history or the favorites if the user chooses so
+	elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
+	    if [[ "$1" == '-f' ]]; then
+		> "$fav_file";
+		# if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
+		grep -v ';0' "$e_hist_file" >> "$p_hist_file";
+		> "$e_hist_file";
+		# as usual re-sort persistent history file when modifying it
+		sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+		mv "$temp_file" "$p_hist_file";
+		# history should be consolidated again
+		cat "$r_hist_file" > "$hist_file";
+		head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	    else
+		> "$hist_file";
+		> "$r_hist_file";
+		> "$p_hist_file";
+	    fi
 	    clear;
-	    echo 'Invalid option. Please try again';
+	    echo "Content of file $input_file has been flushed.";
+	    return 0;
+	else
+	    eval "$display";
+	    echo 'Invalid value! Please try again.';
+	    echo;
+	    read dir_nr;
 	fi
     done
-}
-#
-# Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
-if [[ "$1" == '-f' ]]; then
-    input_file="$fav_file";
-    display='displayFavorites';
-else
-    input_file="$hist_file";
-    display='displayHistory';
-fi
-if [[ ! -s "$input_file" ]]; then
-    echo "File $input_file does not exist or is empty!";
-    return 1;
-fi
-eval "$display";
-read dir_nr;
-#
-# Step 1: check the input entered by user. If should be either:
-# - a number between 1 and and the number of entries contained in the file
-# - a character that triggers flushing the content of the favorites/history file, switching to the other file or quitting the function
-#
-tempVar=`wc -l "$input_file"`;
-currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
-while [[ '1' == '1' ]];
-do
-    if [[ $dir_nr =~  $nonNegativeInteger     ]] &&
-       [[ $dir_nr -ge 1                       ]] &&
-       [[ $dir_nr -le $currentNumberOfEntries ]]; then
-	break;
-    elif [[ $dir_nr == 'q' ]] || [[ $dir_nr == 'Q' ]]; then
-	clear;
-	echo 'Aborted!';
-	return 0;
-    # toggle to the other menu if the user chooses so
-    elif [[ $dir_nr == 't' ]] || [[ $dir_nr == 'T' ]]; then
-	if [[ "$1" == '-f' ]]; then
-	    if [[ ! -s "$hist_file" ]]; then
-		eval "$display";
-		echo "File $hist_file is empty! Toggling disabled";
-		echo 'Please enter one of the valid options listed above';
-		echo;
-		read dir_nr;
-	    else
-		gthist;
-		return $?;
-	    fi
-	else
-	    if [[ ! -s "$fav_file" ]]; then
-		eval "$display";
-		echo "File $fav_file is empty! Toggling disabled";
-		echo 'Please enter one of the valid options listed above';
-		echo;
-		read dir_nr;
-	    else
-		gthist -f;
-		return $?;
-	    fi
-	fi
-    # clear history or the favorites if the user chooses so
-    elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
-	if [[ "$1" == '-f' ]]; then
-	    > "$fav_file";
-	    # if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
-	    grep -v ';0' "$e_hist_file" >> "$p_hist_file";
-	    > "$e_hist_file";
-	    # as usual re-sort persistent history file when modifying it
-	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-	    mv "$temp_file" "$p_hist_file";
-	    # history should be consolidated again
-	    cat "$r_hist_file" > "$hist_file";
-	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	else
-	    > "$hist_file";
-	    > "$r_hist_file";
-	    > "$p_hist_file";
-	fi
-	clear;
-	echo "Content of file $input_file has been flushed.";
-	return 0;
-    else
-	eval "$display";
-	echo 'Invalid value! Please try again.';
-	echo;
-	read dir_nr;
+    #
+    # Step 2: read the line from the input file
+    #
+    dir_path=`sed "$dir_nr"'q;d' "$input_file"`;
+    #
+    # Step 3: if the line of the input file contains a valid directory path, then visit the directory
+    #
+    if [[ ! -d "$dir_path" ]]; then
+	handleMissingDirectory;
+	return 1;
     fi
-done
-#
-# Step 2: read the line from the input file
-#
-dir_path=`sed "$dir_nr"'q;d' "$input_file"`;
-#
-# Step 3: if the line of the input file contains a valid directory path, then visit the directory
-#
-if [[ ! -d "$dir_path" ]]; then
-    handleMissingDirectory;
-    return 1;
-fi
-gotoDir "$dir_path";
-return 0; 
+    gotoDir "$dir_path";
+    return 0; 
 }
 
 function goToPrevDir {
