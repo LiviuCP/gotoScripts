@@ -1,6 +1,7 @@
 # This file contains functions used for:
 # - navigating between folders
-# - tracking history of navigated folders and enabling the user to jump directly to one of these directories by entering only a number
+# - tracking history of navigated folders and enabling the user to jump directly to one of these directories by choosing the entry number
+# - adding directories to favorites menu and enabling jumping to one of these by just choosing the entry number
 #
 # global variables
 script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
@@ -12,7 +13,7 @@ fav_file=$script_dir/.goto_favorites; #file containing the directories saved to 
 format_file=$script_dir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
 r_hist_max_rows=5; #maximum number of entries allowed in the recent history file
 p_hist_max_rows=20; #maximum number of entries allowed in the persistent history file
-nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a number
+nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 prev_dir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 #
 function gotoDir {
@@ -23,7 +24,7 @@ function gotoDir {
 delay_before_close=0.2; #number of seconds of delay before using osascript to close the Finder window
 delay_after_reopen=0.3; #number of seconds of delay after re-opening the Finder window
 delay_error_reopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
-temp_file=$script_dir/.temp; #temporary file used for updating the history file with the new entry (new previous current directory)
+temp_file=$script_dir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 
 clear; 
 #
@@ -66,9 +67,7 @@ fi
 #
 # Step 4: re-open Finder in the new directory if previous close operation had been succesful;
 # Then check if re-open was successful:
-# a) if not, make an attempt to repeat the re-open operation
-#    - if it fails again, then issue error and terminate script
-#    - if re-open was successful, proceed to step 5
+# a) if not, terminate the script
 # b) if yes, proceed to step 5
 if [[ $? != 0 ]]; then 
     echo 'Error when closing Finder. Script aborted.';
@@ -81,7 +80,7 @@ fi
 #
 if [[ $? != 0 ]]; then
     sleep $delay_error_reopen; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
-    echo "Error! Cannot open directory $1 in Finder."; #if reopening fails, issue error and terminate script
+    echo "Error! Cannot open directory $1 in Finder.";
     echo "Reverting to previous directory $prev_dir.";
     echo 'Please try again.';
     cd - > /dev/null;
@@ -92,7 +91,6 @@ fi
 #
 echo "Previous directory: $prev_dir"; 
 echo "Opened directory: `pwd`";
-# don't touch history files if the current directory had remained unchanged (no more actions required, skip all further steps)
 current_dir=`pwd`;
 if [[ $current_dir == $prev_dir ]]; then
     echo;
@@ -103,17 +101,20 @@ if [[ $current_dir == $prev_dir ]]; then
 fi
 nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
 matched_row=`grep -xn "$current_dir" "$r_hist_file"`;
-if [[ $? == 0 ]]; then #remove previous current directory path from history file if path is contained
+#remove previous current directory path from history file if path is contained
+if [[ $? == 0 ]]; then
     matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
     sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
-elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then #if number of rows is at maximum, remove a row to make room for the new entry
+#if number of rows is at maximum, remove a row to make room for the new entry
+elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then
     sed "$r_hist_max_rows"'d' "$r_hist_file" > "$temp_file";
+#copy the history file to temporary file to maintain consistency with above cases
 else
-    cp "$r_hist_file" "$temp_file"; #copy the history file to temporary file to maintain consistency
+    cp "$r_hist_file" "$temp_file";
 fi
 echo "$current_dir" > "$r_hist_file";
 cat "$temp_file" >> "$r_hist_file";
-rm "$temp_file"; #remove the temporary file, no longer needed
+rm "$temp_file";
 #
 # Step 6: check if the entry already exists in the persistent history file
 # - if yes: update the persistent history file, then sort it in reverse order by number of visits
@@ -146,7 +147,7 @@ else
     fi
 fi
 #
-# Step 7: consolidate the recent and persistent history into a single file for a unified user access
+# Step 7: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
 #
 cat "$r_hist_file" > "$hist_file";
 head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
@@ -168,6 +169,7 @@ function formatFileContent {
 	echo $currentEntryFormatted >> "$format_file";
     done < "$inputFile"
 }
+#displays the consolidated history menu in a convenient manner for the user
 function displayHistory {
     tempVar1=`wc -l "$r_hist_file"`;
     tempVar2=`wc -l "$p_hist_file"`;
@@ -192,6 +194,7 @@ function displayHistory {
     echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
     echo;
 }
+#displays the favorites menu in a different (tailor-made) manner from the history menu
 function displayFavorites {
     formatFileContent "$fav_file";
     clear;
@@ -219,11 +222,11 @@ function handleMissingDirectory {
 	echo 'q or Q: quit';
 	echo;
 	read userChoice;
+	# user chooses to remove the entry from recent history (if there)
 	if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
-	    # remove the entry from recent history (if there)
 	    grep -v "$dir_path" "$r_hist_file" > "$temp_file";
 	    mv "$temp_file" "$r_hist_file";
-	    # if consolidated history was queried, remove the entry from persistent history
+	    # if consolidated history had been queried, remove the entry from persistent history
 	    if [[ "$input_file" == "$hist_file" ]]; then
 		grep -v "$dir_path"';' "$p_hist_file" > "$temp_file";
 		sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
@@ -239,6 +242,7 @@ function handleMissingDirectory {
 	    cat "$r_hist_file" > "$hist_file";
 	    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 	    return 0;
+	# user chooses to replace the directory entry with another (existing) path
 	elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
 	    clear;
 	    echo 'Enter the name of the replacing directory: ';
@@ -368,7 +372,7 @@ do
 	clear;
 	echo 'Aborted!';
 	return 0;
-    # toggle to the other menu if the user does not find the required entry
+    # toggle to the other menu if the user chooses so
     elif [[ $dir_nr == 't' ]] || [[ $dir_nr == 'T' ]]; then
 	if [[ "$1" == '-f' ]]; then
 	    if [[ ! -s "$hist_file" ]]; then
@@ -393,10 +397,11 @@ do
 		return $?;
 	    fi
 	fi
+    # clear history or the favorites if the user chooses so
     elif [[ $dir_nr == 'c' ]] || [[ $dir_nr == 'C' ]]; then
 	if [[ "$1" == '-f' ]]; then
 	    > "$fav_file";
-	    # the content of the excluded history file (except unvisited dirs) should return to the persistent history file
+	    # if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
 	    grep -v ';0' "$e_hist_file" >> "$p_hist_file";
 	    > "$e_hist_file";
 	    # as usual re-sort persistent history file when modifying it
@@ -425,7 +430,7 @@ done
 #
 dir_path=`sed "$dir_nr"'q;d' "$input_file"`;
 #
-# Step 3: if the line of the input file contains a valid directory path, then it is fed as argument to the goto function
+# Step 3: if the line of the input file contains a valid directory path, then visit the directory
 #
 if [[ ! -d "$dir_path" ]]; then
     handleMissingDirectory;
@@ -445,7 +450,7 @@ return 0;
 }
 
 function addToFavorites {
-#temporary file used for updating the persistent history file if required
+#temporary file used for various operations (to be removed each time the operation it is used in finishes)
 temp_file=$script_dir/.temp;
 # Step 1: check if the user entered an argument or not
 # - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
@@ -463,6 +468,8 @@ else
 fi
 
 # Step 2: append the path to the favorites file (create it if it does not exist)
+#
+# helper function that moves the entry from the persistent history file to the excluded history file
 function excludeFromPersistentHistory {
     # check if the entry is included in the persistent history file (if yes, move to the excluded history file and re-sort the persistent history file)
     entryToExclude=`grep "$dir_to_add"';' "$p_hist_file"`;
@@ -499,9 +506,10 @@ else
     return 0;
 fi
 }
-
+#
+# this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
-#temporary file used for updating the favorites file and the excluded file when an entry is removed
+#temporary file used for various operations (to be removed each time the operation it is used in finishes)
 temp_file=$script_dir/.temp;
 # Step 1: check if the favorites file exists and is not empty
 if [[ ! -f "$fav_file" ]]; then
