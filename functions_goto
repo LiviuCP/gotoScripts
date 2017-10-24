@@ -21,138 +21,138 @@ function gotoDir {
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
 #
-delay_before_close=0.2; #number of seconds of delay before using osascript to close the Finder window
-delay_after_reopen=0.3; #number of seconds of delay after re-opening the Finder window
-delay_error_reopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
-temp_file=$script_dir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
+    delay_before_close=0.2; #number of seconds of delay before using osascript to close the Finder window
+    delay_after_reopen=0.3; #number of seconds of delay after re-opening the Finder window
+    delay_error_reopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
+    temp_file=$script_dir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 
-clear; 
-#
-# Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
-#
-if [[ -z $1 ]]; then 
-    echo "No arguments entered. Script aborted.";
-    return 1;
-fi	 
-#
-if [[ ! -d $1 ]]; then 
-    echo "Invalid directory $1. It might not exist or have been deleted";
-    return 1;  
-fi
-# create the history files if they don't already exist
-if [[ ! -f "$r_hist_file" ]]; then
-    > "$r_hist_file";
-fi
-if [[ ! -f "$p_hist_file" ]]; then
-    > "$p_hist_file";
-fi
-if [[ ! -f "$e_hist_file" ]]; then
-    > "$e_hist_file";
-fi
-#
-# Step 2: memorize current directory and cd to the new directory
-#
-prev_dir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
-cd "$1";
-#
-# Step 3: close Finder if cd to the new dir had been successful
-#
-if [[ $? != 0 ]]; then 
-    echo "Error! Cannot change the directory to $1. Script aborted.";
-    return 1;  
-else
-    sleep $delay_before_close; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
-    osascript -e 'quit app "Finder"'; #quit Finder
-fi
-#
-# Step 4: re-open Finder in the new directory if previous close operation had been succesful;
-# Then check if re-open was successful:
-# a) if not, terminate the script
-# b) if yes, proceed to step 5
-if [[ $? != 0 ]]; then 
-    echo 'Error when closing Finder. Script aborted.';
-    open –a terminal; #ensure the terminal stays in the foreground
-    return 1;
-else
-    open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
-    sleep $delay_after_reopen; #delay further operations so user does not enter a new path before the directory is completely opened
-fi
-#
-if [[ $? != 0 ]]; then
-    sleep $delay_error_reopen; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
-    echo "Error! Cannot open directory $1 in Finder.";
-    echo "Reverting to previous directory $prev_dir.";
-    echo 'Please try again.';
-    cd - > /dev/null;
-    return 1;
-fi
-#
-# Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the recent history file
-#
-echo "Previous directory: $prev_dir"; 
-echo "Opened directory: `pwd`";
-current_dir=`pwd`;
-if [[ $current_dir == $prev_dir ]]; then
-    echo;
-    echo 'The current directory remained unchanged!';
-    echo;
-    open -a terminal;
-    return 0;
-fi
-nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
-matched_row=`grep -xn "$current_dir" "$r_hist_file"`;
-#remove previous current directory path from history file if path is contained
-if [[ $? == 0 ]]; then
-    matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
-    sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
-#if number of rows is at maximum, remove a row to make room for the new entry
-elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then
-    sed "$r_hist_max_rows"'d' "$r_hist_file" > "$temp_file";
-#copy the history file to temporary file to maintain consistency with above cases
-else
-    cp "$r_hist_file" "$temp_file";
-fi
-echo "$current_dir" > "$r_hist_file";
-cat "$temp_file" >> "$r_hist_file";
-rm "$temp_file";
-#
-# Step 6: check if the entry already exists in the persistent history file
-# - if yes: update the persistent history file, then sort it in reverse order by number of visits
-# - if not, check if included in excluded history file
-#   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
-#   - if not: add the entry to persistent history file and sort the file
-p_hist_matched_row=`grep "$current_dir"';' "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
-if [[ $? == 0 ]]; then
-    extracted_path=`echo $p_hist_matched_row | cut -f 1 -d ';'`;
-    visitsCount=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
-    let "visitsCount=visitsCount+1";
-    p_hist_replacing_row="$extracted_path"';'"$visitsCount";
-    sed -e "s+$p_hist_matched_row+$p_hist_replacing_row+g" "$p_hist_file" > "$temp_file";
-    mv "$temp_file" "$p_hist_file";
-    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-    mv "$temp_file" "$p_hist_file";
-else
-    e_hist_matched_row=`grep "$current_dir"';' "$e_hist_file"`;
-    if [[ $? == 0 ]]; then
-	extracted_path=`echo $e_hist_matched_row | cut -f 1 -d ';'`;
-	visitsCount=`echo $e_hist_matched_row | cut -f 2 -d ';'`;
-	let "visitsCount=visitsCount+1";
-	e_hist_replacing_row="$extracted_path"';'"$visitsCount";
-	sed -e "s+$e_hist_matched_row+$e_hist_replacing_row+g" "$e_hist_file" > "$temp_file";
-	mv "$temp_file" "$e_hist_file";
+    clear; 
+    #
+    # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
+    #
+    if [[ -z $1 ]]; then 
+	echo "No arguments entered. Script aborted.";
+	return 1;
+    fi	 
+    #
+    if [[ ! -d $1 ]]; then 
+	echo "Invalid directory $1. It might not exist or have been deleted";
+	return 1;  
+    fi
+    # create the history files if they don't already exist
+    if [[ ! -f "$r_hist_file" ]]; then
+	> "$r_hist_file";
+    fi
+    if [[ ! -f "$p_hist_file" ]]; then
+	> "$p_hist_file";
+    fi
+    if [[ ! -f "$e_hist_file" ]]; then
+	> "$e_hist_file";
+    fi
+    #
+    # Step 2: memorize current directory and cd to the new directory
+    #
+    prev_dir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
+    cd "$1";
+    #
+    # Step 3: close Finder if cd to the new dir had been successful
+    #
+    if [[ $? != 0 ]]; then 
+	echo "Error! Cannot change the directory to $1. Script aborted.";
+	return 1;  
     else
-	echo "$current_dir;1" >> "$p_hist_file";
+	sleep $delay_before_close; #enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
+	osascript -e 'quit app "Finder"'; #quit Finder
+    fi
+    #
+    # Step 4: re-open Finder in the new directory if previous close operation had been succesful;
+    # Then check if re-open was successful:
+    # a) if not, terminate the script
+    # b) if yes, proceed to step 5
+    if [[ $? != 0 ]]; then 
+	echo 'Error when closing Finder. Script aborted.';
+	open –a terminal; #ensure the terminal stays in the foreground
+	return 1;
+    else
+	open . 2> /dev/null; #open the desired folder in Finder (supress error as it will be handled in the next step)
+	sleep $delay_after_reopen; #delay further operations so user does not enter a new path before the directory is completely opened
+    fi
+    #
+    if [[ $? != 0 ]]; then
+	sleep $delay_error_reopen; #additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
+	echo "Error! Cannot open directory $1 in Finder.";
+	echo "Reverting to previous directory $prev_dir.";
+	echo 'Please try again.';
+	cd - > /dev/null;
+	return 1;
+    fi
+    #
+    # Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the recent history file
+    #
+    echo "Previous directory: $prev_dir"; 
+    echo "Opened directory: `pwd`";
+    current_dir=`pwd`;
+    if [[ $current_dir == $prev_dir ]]; then
+	echo;
+	echo 'The current directory remained unchanged!';
+	echo;
+	open -a terminal;
+	return 0;
+    fi
+    nr_of_rows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
+    matched_row=`grep -xn "$current_dir" "$r_hist_file"`;
+    #remove previous current directory path from history file if path is contained
+    if [[ $? == 0 ]]; then
+	matched_row_nr=`echo $matched_row | cut -f 1 -d : `; 
+	sed "$matched_row_nr"'d' "$r_hist_file" > "$temp_file";
+	#if number of rows is at maximum, remove a row to make room for the new entry
+    elif [[ $nr_of_rows -eq $r_hist_max_rows ]]; then
+	sed "$r_hist_max_rows"'d' "$r_hist_file" > "$temp_file";
+	#copy the history file to temporary file to maintain consistency with above cases
+    else
+	cp "$r_hist_file" "$temp_file";
+    fi
+    echo "$current_dir" > "$r_hist_file";
+    cat "$temp_file" >> "$r_hist_file";
+    rm "$temp_file";
+    #
+    # Step 6: check if the entry already exists in the persistent history file
+    # - if yes: update the persistent history file, then sort it in reverse order by number of visits
+    # - if not, check if included in excluded history file
+    #   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
+    #   - if not: add the entry to persistent history file and sort the file
+    p_hist_matched_row=`grep "$current_dir"';' "$p_hist_file"`; #use the ';' separator for the grep in order to avoid multiple matches
+    if [[ $? == 0 ]]; then
+	extracted_path=`echo $p_hist_matched_row | cut -f 1 -d ';'`;
+	visitsCount=`echo $p_hist_matched_row | cut -f 2 -d ';'`;
+	let "visitsCount=visitsCount+1";
+	p_hist_replacing_row="$extracted_path"';'"$visitsCount";
+	sed -e "s+$p_hist_matched_row+$p_hist_replacing_row+g" "$p_hist_file" > "$temp_file";
+	mv "$temp_file" "$p_hist_file";
 	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	mv "$temp_file" "$p_hist_file";
+    else
+	e_hist_matched_row=`grep "$current_dir"';' "$e_hist_file"`;
+	if [[ $? == 0 ]]; then
+	    extracted_path=`echo $e_hist_matched_row | cut -f 1 -d ';'`;
+	    visitsCount=`echo $e_hist_matched_row | cut -f 2 -d ';'`;
+	    let "visitsCount=visitsCount+1";
+	    e_hist_replacing_row="$extracted_path"';'"$visitsCount";
+	    sed -e "s+$e_hist_matched_row+$e_hist_replacing_row+g" "$e_hist_file" > "$temp_file";
+	    mv "$temp_file" "$e_hist_file";
+	else
+	    echo "$current_dir;1" >> "$p_hist_file";
+	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+	    mv "$temp_file" "$p_hist_file";
+	fi
     fi
-fi
-#
-# Step 7: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
-#
-cat "$r_hist_file" > "$hist_file";
-head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-#no matter how the function works the terminal must remain the active window after the script finishes execution
-open -a terminal;
+    #
+    # Step 7: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
+    #
+    cat "$r_hist_file" > "$hist_file";
+    head -"$p_hist_max_rows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+    #no matter how the function works the terminal must remain the active window after the script finishes execution
+    open -a terminal;
 }
 #
 function gthist {
