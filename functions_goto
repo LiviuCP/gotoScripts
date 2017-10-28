@@ -187,6 +187,7 @@ function gthist {
 	rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
 	pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
 	formatFileContent "$hist_file";
+	unset -f formatFileContent;
 	clear;
 	echo 'NAVIGATION HISTORY';
 	echo;
@@ -208,6 +209,7 @@ function gthist {
     #displays the favorites menu in a different (tailor-made) manner from the history menu
     function displayFavorites {
 	formatFileContent "$fav_file";
+	unset -f formatFileContent;
 	clear;
 	echo 'FAVORITE DIRECTORIES';
 	echo;
@@ -365,6 +367,8 @@ function gthist {
 	return 1;
     fi
     eval "$display";
+    unset -f displayHistory;
+    unset -f displayFavorites;
     read dirNr;
     #
     # Step 1: check the input entered by user. If should be either:
@@ -444,6 +448,7 @@ function gthist {
     # Step 3: if the line of the input file contains a valid directory path, then visit the directory
     if [[ ! -d "$dirPath" ]]; then
 	handleMissingDirectory;
+	unset -f handleMissingDirectory;
 	return 1;
     fi
     gotoDir "$dirPath";
@@ -513,6 +518,7 @@ function addToFavorites {
 	    echo $dirToAdd >> "$fav_file";
 	    echo "Directory $dirToAdd added to favorites";
 	    excludeFromPersistentHistory;
+	    unset -f excludeFromPersistentHistory;
 	    return 0;
 	else
 	    echo "Directory $dirToAdd already added to favorites";
@@ -522,6 +528,7 @@ function addToFavorites {
 	echo $dirToAdd >> "$fav_file";
 	echo "Directory $dirToAdd added to favorites";
 	excludeFromPersistentHistory;
+	unset -f excludeFromPersistentHistory;
 	return 0;
     fi
 }
@@ -553,6 +560,7 @@ function removeFromFavorites {
 	echo;
     }
     displayFavoritesFile;
+    unset -f displayFavoritesFile;
     read dirNr;
     #
     # Step 3: check the input entered by user. If should be either:
@@ -572,6 +580,7 @@ function removeFromFavorites {
 	    return 0;
 	else
 	    displayFavoritesFile;
+	    unset -f displayFavoritesFile;
 	    echo 'Invalid value! Please try again.';
 	    echo;
 	    read dirNr;
@@ -639,8 +648,33 @@ function navigate {
 	    echo 'You exited navigation mode';
 	    return 0;
 	else
-	    echo 'Entered argument:'"$dir_to_visit";
 	    gotoDir "`echo $dir_to_visit`";
 	fi
     done
 }
+#
+#
+#
+#
+# *****************************************************************************************************************
+#
+# Disable all "private" functions so they cannot be accessed by user from CLI
+# These functions are only helper functions that are used by the global functions in order to perform specific operations
+# Direct access from user side might cause unexpected behavior
+# In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
+#
+unset -f formatFileContent;
+unset -f displayHistory;
+unset -f displayFavorites;
+unset -f handleMissingDirectory;
+unset -f excludeFromPersistentHistory;
+unset -f displayFavoritesFile;
+#
+#
+#
+#
+# *****************************************************************************************************************
+#
+# Naming conventions used in this file:
+# - variables containing path of working files (e.g. $p_hist_file): to be named using Python convention (underscore)
+# - all other variables and all functions: to be named using lower camelCase convention
