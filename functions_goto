@@ -34,11 +34,10 @@ function gotoDir {
     delayErrorReopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
     # temporary file used for various operations (to be removed each time the operation it is used in finishes)
     temp_file=$scriptDir/.temp;
-    clear; 
     #
     # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
     if [[ -z $1 ]]; then 
-	echo "No arguments entered. Script aborted.";
+	echo 'No arguments entered. Script aborted.';
 	return 1;
     fi	 
     #
@@ -103,9 +102,7 @@ function gotoDir {
     echo "Previous directory: $prevDir";
     echo "Opened directory: $currentDir";
     if [[ $currentDir == $prevDir ]]; then
-	echo;
 	echo 'The current directory remained unchanged!';
-	echo;
 	open -a terminal;
 	return 0;
     fi
@@ -122,7 +119,7 @@ function gotoDir {
     else
 	cp "$r_hist_file" "$temp_file";
     fi
-    echo "$currentDir" > "$r_hist_file";
+    echo $currentDir > "$r_hist_file";
     cat "$temp_file" >> "$r_hist_file";
     rm "$temp_file";
     #
@@ -154,7 +151,7 @@ function gotoDir {
 	    sed -e "s+$eHistMatchedRow+$eHistReplacingRow+g" "$e_hist_file" > "$temp_file";
 	    mv "$temp_file" "$e_hist_file";
 	else
-	    echo "$currentDir;1" >> "$p_hist_file";
+	    echo "$currentDir"';1' >> "$p_hist_file";
 	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	    mv "$temp_file" "$p_hist_file";
 	fi
@@ -502,7 +499,7 @@ function addToFavorites {
 	    cat "$r_hist_file" > "$hist_file";
 	    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 	    # update excluded history file
-	    echo "$entryToExclude" >> "$e_hist_file";
+	    echo $entryToExclude >> "$e_hist_file";
 	else
 	    # if file is not already included in persistent history, just add it to the excluded history file (with number of visits 0 as the directory hasn't been visited yet)
 	    echo "$dirToAdd"';0' >> "$e_hist_file";
@@ -632,7 +629,7 @@ function navigate {
 	    echo 'You exited navigation mode';
 	    return 0;
 	else
-	    echo 'Entered argument:'"$dirToVisit";
+	    echo "Entered argument: $dirToVisit";
 	    gotoDir "`echo $dirToVisit`";
 	fi
     done
