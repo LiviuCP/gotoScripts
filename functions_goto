@@ -5,15 +5,16 @@
 #
 # GLOBAL VARIABLES
 #
-script_dir=`pwd`; #get script directory in order to build the paths of the supporting files
-prev_dir=''; #this variable is used both by the goto function and the function that jumps to previous directory
-r_hist_file=$script_dir/.recent_history; #file containing a list of the most recently visited directories
-p_hist_file=$script_dir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
-e_hist_file=$script_dir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
+scriptDir=`pwd`; #get script directory in order to build the paths of the supporting files
+prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 #
-hist_file=$script_dir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
-fav_file=$script_dir/.goto_favorites; #file containing the directories saved to favorites
-format_file=$script_dir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
+r_hist_file=$scriptDir/.recent_history; #file containing a list of the most recently visited directories
+p_hist_file=$scriptDir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
+e_hist_file=$scriptDir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
+#
+hist_file=$scriptDir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
+fav_file=$scriptDir/.goto_favorites; #file containing the directories saved to favorites
+format_file=$scriptDir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
 #
 rHistMaxRows=5; #maximum number of entries allowed in the recent history file
 pHistMaxRows=20; #maximum number of entries allowed in the persistent history file
@@ -32,7 +33,7 @@ function gotoDir {
     delayAfterReopen=0.3; #number of seconds of delay after re-opening the Finder window
     delayErrorReopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
     # temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$script_dir/.temp;
+    temp_file=$scriptDir/.temp;
     clear; 
     #
     # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
@@ -57,7 +58,7 @@ function gotoDir {
     fi
     #
     # Step 2: memorize current directory and cd to the new directory
-    prev_dir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
+    prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
     cd "$1";
     #
     # Step 3: close Finder if cd to the new dir had been successful
@@ -91,17 +92,17 @@ function gotoDir {
 	sleep $delayErrorReopen;
 	#
 	echo "Error! Cannot open directory $1 in Finder.";
-	echo "Reverting to previous directory $prev_dir.";
+	echo "Reverting to previous directory $prevDir.";
 	echo 'Please try again.';
 	cd - > /dev/null;
 	return 1;
     fi
     #
     # Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the recent history file
-    echo "Previous directory: $prev_dir"; 
+    echo "Previous directory: $prevDir";
     echo "Opened directory: `pwd`";
-    current_dir=`pwd`;
-    if [[ $current_dir == $prev_dir ]]; then
+    currentDir=`pwd`;
+    if [[ $currentDir == $prevDir ]]; then
 	echo;
 	echo 'The current directory remained unchanged!';
 	echo;
@@ -109,7 +110,7 @@ function gotoDir {
 	return 0;
     fi
     nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
-    matchedRow=`grep -xn "$current_dir" "$r_hist_file"`;
+    matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
     #remove previous current directory path from history file if path is contained
     if [[ $? == 0 ]]; then
 	matchedRowNr=`echo $matchedRow | cut -f 1 -d : `;
@@ -121,7 +122,7 @@ function gotoDir {
     else
 	cp "$r_hist_file" "$temp_file";
     fi
-    echo "$current_dir" > "$r_hist_file";
+    echo "$currentDir" > "$r_hist_file";
     cat "$temp_file" >> "$r_hist_file";
     rm "$temp_file";
     #
@@ -132,7 +133,7 @@ function gotoDir {
     #   - if not: add the entry to persistent history file and sort the file
     #
     # #use the ';' separator for the grep in order to avoid multiple matches
-    pHistMatchedRow=`grep "$current_dir"';' "$p_hist_file"`;
+    pHistMatchedRow=`grep "$currentDir"';' "$p_hist_file"`;
     #
     if [[ $? == 0 ]]; then
 	extractedPath=`echo $pHistMatchedRow | cut -f 1 -d ';'`;
@@ -144,7 +145,7 @@ function gotoDir {
 	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	mv "$temp_file" "$p_hist_file";
     else
-	eHistMatchedRow=`grep "$current_dir"';' "$e_hist_file"`;
+	eHistMatchedRow=`grep "$currentDir"';' "$e_hist_file"`;
 	if [[ $? == 0 ]]; then
 	    extractedPath=`echo $eHistMatchedRow | cut -f 1 -d ';'`;
 	    visitsCount=`echo $eHistMatchedRow | cut -f 2 -d ';'`;
@@ -153,7 +154,7 @@ function gotoDir {
 	    sed -e "s+$eHistMatchedRow+$eHistReplacingRow+g" "$e_hist_file" > "$temp_file";
 	    mv "$temp_file" "$e_hist_file";
 	else
-	    echo "$current_dir;1" >> "$p_hist_file";
+	    echo "$currentDir;1" >> "$p_hist_file";
 	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	    mv "$temp_file" "$p_hist_file";
 	fi
@@ -456,11 +457,11 @@ function gthist {
 #
 # used for returning to the previously visited directory without needing to access the history or favorites menus
 function goToPrevDir {
-    if [[ $prev_dir == '' ]]; then
+    if [[ $prevDir == '' ]]; then
 	echo 'No directory had previously been visited in the current session!';
 	return 1;
     fi
-    gotoDir "$prev_dir";
+    gotoDir "$prevDir";
     return 0;
 }
 #
@@ -469,7 +470,7 @@ function goToPrevDir {
 # used for adding a directory (either the current one or another) to favorites
 function addToFavorites {
     #temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$script_dir/.temp;
+    temp_file=$scriptDir/.temp;
     #
     # Step 1: check if the user entered an argument or not
     # - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
@@ -533,7 +534,7 @@ function addToFavorites {
 # this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
     #temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$script_dir/.temp;
+    temp_file=$scriptDir/.temp;
     #
     # Step 1: check if the favorites file exists and is not empty
     if [[ ! -f "$fav_file" ]]; then
