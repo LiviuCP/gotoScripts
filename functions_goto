@@ -574,11 +574,17 @@ echo 'Entry removed from the favorites file';
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
+clear;
+echo 'Welcome to navigation mode!';
 while [[ '1' == '1' ]]; do
     echo;
     echo 'Enter the path of the directory you want to visit. ';
+    echo "Current directory: `pwd`";
+    echo;
     echo 'Other available options: ';
     echo ':h - to enter history menu';
+    echo ':a - to add current directory to favorites';
+    echo ':r - to remove a directory from favorites';
     echo ':f - to enter favorites menu';
     echo ':p - to go to the previously visited directory';
     echo ':q - to quit navigation mode';
@@ -589,6 +595,10 @@ while [[ '1' == '1' ]]; do
 	gthist;
     elif [[ $dir_to_visit == ':f' ]]; then
 	gthist -f;
+    elif [[ $dir_to_visit == ':a' ]]; then
+	addToFavorites;
+    elif [[ $dir_to_visit == ':r' ]]; then
+	removeFromFavorites;
     elif [[ $dir_to_visit == ':p' ]]; then
 	goToPrevDir;
     elif [[ $dir_to_visit == ':q' ]]; then
