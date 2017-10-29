@@ -189,7 +189,6 @@ function gthist {
 	rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
 	pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
 	formatFileContent "$hist_file";
-	unset -f formatFileContent;
 	clear;
 	echo 'NAVIGATION HISTORY';
 	echo;
@@ -212,7 +211,6 @@ function gthist {
     #displays the favorites menu in a different (tailor-made) manner from the history menu
     function displayFavorites {
 	formatFileContent "$fav_file";
-	unset -f formatFileContent;
 	clear;
 	echo 'FAVORITE DIRECTORIES';
 	echo;
@@ -359,6 +357,15 @@ function gthist {
 	    fi
 	done
     }
+    # unsets all helper functions so they are not accessible by user from CLI
+    # should be called before the main function returns, otherwise the helpers might become inaccessible earlier than required
+    # the unsetHelpers function should be itself unset (right after it runs)
+    function unsetHelpers {
+	unset -f formatFileContent;
+	unset -f displayHistory;
+	unset -f displayFavorites;
+	unset -f handleMissingDirectory;
+    }
     #
     # Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
     if [[ "$1" == '-f' ]]; then
@@ -372,11 +379,11 @@ function gthist {
     fi
     if [[ ! -s "$input_file" ]]; then
 	echo "There are no entries in the $menuType menu.";
+	unsetHelpers 2> /dev/null;
+	unset -f unsetHelpers;
 	return 1;
     fi
     eval "$display";
-    unset -f displayHistory;
-    unset -f displayFavorites;
     read dirNr;
     #
     # Step 1: check the input entered by user. If should be either:
@@ -395,6 +402,8 @@ function gthist {
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
 	    echo 'Aborted by user.';
+	    unsetHelpers 2> /dev/null;
+	    unset -f unsetHelpers;
 	    return 0;
 	# toggle to the other menu if the user chooses so
 	elif [[ $dirNr == 't' ]] || [[ $dirNr == 'T' ]]; then
@@ -407,6 +416,8 @@ function gthist {
 		    read dirNr;
 		else
 		    gthist;
+		    unsetHelpers 2> /dev/null;
+		    unset -f unsetHelpers;
 		    return $?;
 		fi
 	    else
@@ -418,6 +429,8 @@ function gthist {
 		    read dirNr;
 		else
 		    gthist -f;
+		    unsetHelpers 2> /dev/null;
+		    unset -f unsetHelpers;
 		    return $?;
 		fi
 	    fi
@@ -441,6 +454,8 @@ function gthist {
 	    fi
 	    clear;
 	    echo "Content of file $input_file has been flushed.";
+	    unsetHelpers 2> /dev/null;
+	    unset -f unsetHelpers;
 	    return 0;
 	else
 	    eval "$display";
@@ -456,10 +471,13 @@ function gthist {
     # Step 3: if the line of the input file contains a valid directory path, then visit the directory
     if [[ ! -d "$dirPath" ]]; then
 	handleMissingDirectory;
-	unset -f handleMissingDirectory;
+	unsetHelpers 2> /dev/null;
+	unset -f unsetHelpers;
 	return 1;
     fi
     gotoDir "$dirPath";
+    unsetHelpers 2> /dev/null;
+    unset -f unsetHelpers;
     return 0; 
 }
 #
@@ -490,6 +508,7 @@ function addToFavorites {
 	if [[ ! -d "$1" ]]; then
 	    echo "Directory $1 does not exist or has been deleted.";
 	    echo 'Cannot add to favorites.';
+	    unset -f excludeFromPersistentHistory;
 	    return 1;
 	fi
 	cd "$1";
@@ -532,6 +551,7 @@ function addToFavorites {
 	    return 0;
 	else
 	    echo "Directory $dirToAdd already added to favorites.";
+	    unset -f excludeFromPersistentHistory;
 	    return 1;
 	fi
     else
@@ -554,11 +574,13 @@ function removeFromFavorites {
     if [[ ! -f "$fav_file" ]]; then
 	echo "The favorites file $fav_file does not exist or has been deleted.";
 	echo 'Please add a directory to favorites and then try again.';
+	unset -f displayFavoritesFile;
 	return 1;
     fi
     if [[ ! -s "$fav_file" ]]; then
 	echo "File $fav_file is empty!";
 	echo 'Nothing to remove';
+	unset -f displayFavoritesFile;
 	return 1;
     fi
     #
@@ -572,7 +594,6 @@ function removeFromFavorites {
 	echo;
     }
     displayFavoritesFile;
-    unset -f displayFavoritesFile;
     read dirNr;
     #
     # Step 3: check the input entered by user. If should be either:
@@ -589,10 +610,10 @@ function removeFromFavorites {
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
 	    echo 'Aborted by user.';
+	    unset -f displayFavoritesFile;
 	    return 0;
 	else
 	    displayFavoritesFile;
-	    unset -f displayFavoritesFile;
 	    echo 'Invalid value! Please try again.';
 	    echo;
 	    read dirNr;
