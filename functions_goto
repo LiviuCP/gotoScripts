@@ -201,11 +201,12 @@ function gthist {
 	echo;
 	cat -n "$format_file" | tail -"$pHistEntries";
 	echo;
-	echo 'Enter the number of the directory you want to navigate to';
+	echo 'Enter the number of the directory you want to navigate to.';
 	if [[ -s "$fav_file" ]]; then
-	    echo 'Enter t or T to toggle to the favorite directories menu';
+	    echo 'Enter t or T to toggle to the favorite directories menu.';
 	fi
-	echo 'Enter q or Q to quit, c or C to clear the navigation history menu';
+	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
+	echo 'Enter q or Q to quit.';
 	echo;
     }
     #displays the favorites menu in a different (tailor-made) manner from the history menu
@@ -217,11 +218,12 @@ function gthist {
 	echo;
 	cat -n "$format_file";
 	echo;
-	echo 'Enter the number of the directory you want to navigate to';
+	echo 'Enter the number of the directory you want to navigate to.';
 	if [[ -s "$hist_file" ]]; then
-	    echo 'Enter t or T to toggle to the navigation history menu';
+	    echo 'Enter t or T to toggle to the navigation history menu.';
 	fi
-	echo 'Enter q or Q to quit, c or C to clear the favorite directories menu';
+	echo 'Enter cMenu (case-sensitive) to clear the favorite directories menu.';
+	echo 'Enter q or Q to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
@@ -420,7 +422,7 @@ function gthist {
 		fi
 	    fi
 	# clear history or the favorites if the user chooses so
-	elif [[ $dirNr == 'c' ]] || [[ $dirNr == 'C' ]]; then
+	elif [[ $dirNr == 'cMenu' ]]; then
 	    if [[ "$1" == '-f' ]]; then
 		> "$fav_file";
 		# if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
