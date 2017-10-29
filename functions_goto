@@ -43,7 +43,7 @@ function gotoDir {
     fi	 
     #
     if [[ ! -d $1 ]]; then 
-	echo "Invalid directory $1.";
+	echo "Invalid directory $1";
 	echo 'It might not exist or have been deleted.';
 	return 1;  
     fi
@@ -64,7 +64,9 @@ function gotoDir {
     #
     # Step 3: close Finder if cd to the new dir had been successful
     if [[ $? != 0 ]]; then 
-	echo "Cannot change the directory to $1.";
+	echo "Cannot change the directory to $1";
+	echo 'The cd command returned an error.';
+	echo 'Please try again.';
 	return 1;  
     else
 	#enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
@@ -93,7 +95,7 @@ function gotoDir {
 	sleep $delayErrorReopen;
 	#
 	echo "Cannot open directory $1 in Finder.";
-	echo "Reverting to previous directory $prevDir.";
+	echo "Reverting to previous directory $prevDir";
 	echo 'Please try again.';
 	cd - > /dev/null;
 	return 1;
