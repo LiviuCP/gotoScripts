@@ -37,12 +37,14 @@ function gotoDir {
     #
     # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
     if [[ -z $1 ]]; then 
-	echo 'No arguments entered. Script aborted.';
+	echo 'No arguments entered.';
+	echo 'Please try again.';
 	return 1;
     fi	 
     #
     if [[ ! -d $1 ]]; then 
-	echo "Invalid directory $1. It might not exist or have been deleted";
+	echo "Invalid directory $1.";
+	echo 'It might not exist or have been deleted.';
 	return 1;  
     fi
     # create the history files if they don't already exist
@@ -62,7 +64,7 @@ function gotoDir {
     #
     # Step 3: close Finder if cd to the new dir had been successful
     if [[ $? != 0 ]]; then 
-	echo "Error! Cannot change the directory to $1. Script aborted.";
+	echo "Cannot change the directory to $1.";
 	return 1;  
     else
 	#enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
@@ -75,7 +77,7 @@ function gotoDir {
     #     a) if not, terminate the script
     #     b) if yes, proceed to step 5
     if [[ $? != 0 ]]; then 
-	echo 'Error when closing Finder. Script aborted.';
+	echo 'Error when closing Finder.';
 	#ensure the terminal stays in the foreground
 	open –a terminal;
 	return 1;
@@ -90,7 +92,7 @@ function gotoDir {
 	#additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
 	sleep $delayErrorReopen;
 	#
-	echo "Error! Cannot open directory $1 in Finder.";
+	echo "Cannot open directory $1 in Finder.";
 	echo "Reverting to previous directory $prevDir.";
 	echo 'Please try again.';
 	cd - > /dev/null;
@@ -102,7 +104,7 @@ function gotoDir {
     echo "Previous directory: $prevDir";
     echo "Opened directory: $currentDir";
     if [[ $currentDir == $prevDir ]]; then
-	echo 'The current directory remained unchanged!';
+	echo 'The current directory remains unchanged!';
 	open -a terminal;
 	return 0;
     fi
@@ -191,11 +193,11 @@ function gthist {
 	clear;
 	echo 'NAVIGATION HISTORY';
 	echo;
-	echo '-- RECENTLY VISITED --';
+	echo '-- RECENTLY VISITED DIRECTORIES --';
 	echo;
 	cat -n "$format_file" | head -"$rHistEntries";
 	echo;
-	echo '-- MOST VISITED --';
+	echo '-- MOST VISITED DIRECTORIES --';
 	echo;
 	cat -n "$format_file" | tail -"$pHistEntries";
 	echo;
@@ -262,7 +264,8 @@ function gthist {
 		read replacingDir;
 		# the mapping directory should exist and be a valid directory
 		if [[ ! -d "$replacingDir" ]]; then
-		    echo "Directory $replacingDir does not exist or has been deleted. Cannot map the missing directory $dirPath."
+		    echo "Directory $replacingDir does not exist or has been deleted.";
+		    echo "Cannot map the missing directory $dirPath.";
 		    return 1;
 		fi
 		# ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
@@ -343,13 +346,14 @@ function gthist {
 		echo;
 		echo "Missing directory: $dirPath";
 		echo "Replacing directory: $replacingDir";
+		echo 'Mapping performed successfully.';
 		return 0;
 	    elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
-		echo 'Aborted!';
+		echo 'Aborted by user.';
 		return 0;
 	    else
 		clear;
-		echo 'Invalid option. Please try again';
+		echo 'Invalid option. Please try again.';
 	    fi
 	done
     }
@@ -358,12 +362,14 @@ function gthist {
     if [[ "$1" == '-f' ]]; then
 	input_file="$fav_file";
 	display='displayFavorites';
+	menuType='favorites';
     else
 	input_file="$hist_file";
 	display='displayHistory';
+	menuType='history';
     fi
     if [[ ! -s "$input_file" ]]; then
-	echo "File $input_file does not exist or is empty!";
+	echo "There are no entries in the $menuType menu.";
 	return 1;
     fi
     eval "$display";
@@ -386,15 +392,15 @@ function gthist {
 	# user chooses to quit the function
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
-	    echo 'Aborted!';
+	    echo 'Aborted by user.';
 	    return 0;
 	# toggle to the other menu if the user chooses so
 	elif [[ $dirNr == 't' ]] || [[ $dirNr == 'T' ]]; then
 	    if [[ "$1" == '-f' ]]; then
 		if [[ ! -s "$hist_file" ]]; then
 		    eval "$display";
-		    echo "File $hist_file is empty! Toggling disabled";
-		    echo 'Please enter one of the valid options listed above';
+		    echo 'Toggling disabled: no entries in the history menu.';
+		    echo 'Please enter one of the valid options listed above.';
 		    echo;
 		    read dirNr;
 		else
@@ -404,8 +410,8 @@ function gthist {
 	    else
 		if [[ ! -s "$fav_file" ]]; then
 		    eval "$display";
-		    echo "File $fav_file is empty! Toggling disabled";
-		    echo 'Please enter one of the valid options listed above';
+		    echo 'Toggling disabled: no entries in the favorites menu.';
+		    echo 'Please enter one of the valid options listed above.';
 		    echo;
 		    read dirNr;
 		else
@@ -436,7 +442,7 @@ function gthist {
 	    return 0;
 	else
 	    eval "$display";
-	    echo 'Invalid value! Please try again.';
+	    echo 'Invalid value. Please try again.';
 	    echo;
 	    read dirNr;
 	fi
@@ -460,7 +466,8 @@ function gthist {
 # used for returning to the previously visited directory without needing to access the history or favorites menus
 function goToPrevDir {
     if [[ $prevDir == '' ]]; then
-	echo 'No directory had previously been visited in the current session!';
+	echo 'Cannot jump to previous directory.';
+	echo 'No directory visited in the current session.';
 	return 1;
     fi
     gotoDir "$prevDir";
@@ -479,7 +486,8 @@ function addToFavorites {
     # - if no argument was entered, the current directory will be added to favorites
     if [[ ! -z "$1" ]]; then
 	if [[ ! -d "$1" ]]; then
-	    echo 'The directory does not exist or has been deleted. Cannot add to favorites.';
+	    echo "Directory $1 does not exist or has been deleted.";
+	    echo 'Cannot add to favorites.';
 	    return 1;
 	fi
 	cd "$1";
@@ -516,17 +524,17 @@ function addToFavorites {
 	grep -x "$dirToAdd" "$fav_file" > /dev/null;
 	if [[ $? != 0 ]]; then
 	    echo $dirToAdd >> "$fav_file";
-	    echo "Directory $dirToAdd added to favorites";
+	    echo "Directory $dirToAdd added to favorites.";
 	    excludeFromPersistentHistory;
 	    unset -f excludeFromPersistentHistory;
 	    return 0;
 	else
-	    echo "Directory $dirToAdd already added to favorites";
+	    echo "Directory $dirToAdd already added to favorites.";
 	    return 1;
 	fi
     else
 	echo $dirToAdd >> "$fav_file";
-	echo "Directory $dirToAdd added to favorites";
+	echo "Directory $dirToAdd added to favorites.";
 	excludeFromPersistentHistory;
 	unset -f excludeFromPersistentHistory;
 	return 0;
@@ -542,11 +550,13 @@ function removeFromFavorites {
     #
     # Step 1: check if the favorites file exists and is not empty
     if [[ ! -f "$fav_file" ]]; then
-	echo "Error! The favorites file $fav_file does not exist or has been deleted";
+	echo "The favorites file $fav_file does not exist or has been deleted.";
+	echo 'Please add a directory to favorites and then try again.';
 	return 1;
     fi
     if [[ ! -s "$fav_file" ]]; then
-	echo "File $fav_file is empty! Nothing to remove";
+	echo "File $fav_file is empty!";
+	echo 'Nothing to remove';
 	return 1;
     fi
     #
@@ -576,7 +586,7 @@ function removeFromFavorites {
 	    break;
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
-	    echo 'Aborted!';
+	    echo 'Aborted by user.';
 	    return 0;
 	else
 	    displayFavoritesFile;
@@ -608,7 +618,7 @@ function removeFromFavorites {
     sed "$dirNr"'d' "$fav_file" > "$temp_file";
     mv "$temp_file" "$fav_file";
     clear;
-    echo 'Entry removed from the favorites file';
+    echo 'Entry removed from the favorites menu.';
 }
 #
 # ******************************************************************************************************************
@@ -645,7 +655,7 @@ function navigate {
 	elif [[ $dir_to_visit == ':p' ]]; then
 	    goToPrevDir;
 	elif [[ $dir_to_visit == ':q' ]]; then
-	    echo 'You exited navigation mode';
+	    echo 'You exited navigation mode.';
 	    return 0;
 	else
 	    gotoDir "`echo $dir_to_visit`";
