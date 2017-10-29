@@ -101,6 +101,8 @@ function gotoDir {
 	echo "Reverting to previous directory $prevDir";
 	cd - > /dev/null;
 	echo 'Please try again.';
+	#ensure the terminal stays in the foreground (in case Finder opens but an error is thrown nonetheless)
+	open –a terminal;
 	return 1;
     fi
     #
