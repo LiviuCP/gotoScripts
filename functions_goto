@@ -79,12 +79,15 @@ function gotoDir {
     #     a) if not, terminate the script
     #     b) if yes, proceed to step 5
     if [[ $? != 0 ]]; then 
-	echo 'Error when closing Finder.';
+	echo 'An error occured when closing Finder.';
+	echo "Reverting to previous directory $prevDir";
+	cd - > /dev/null;
+	echo 'Please try again.';
 	#ensure the terminal stays in the foreground
 	open –a terminal;
 	return 1;
     else
-	#open the desired folder in Finder (supress error as it will be handled in the next step)
+	#open the desired folder in Finder (suppress error as it will be handled in the next step)
 	open . 2> /dev/null;
 	#delay further operations so user does not enter a new path before the directory is completely opened
 	sleep $delayAfterReopen;
@@ -96,8 +99,8 @@ function gotoDir {
 	#
 	echo "Cannot open directory $1 in Finder.";
 	echo "Reverting to previous directory $prevDir";
-	echo 'Please try again.';
 	cd - > /dev/null;
+	echo 'Please try again.';
 	return 1;
     fi
     #
