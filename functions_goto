@@ -97,7 +97,7 @@ function gotoDir {
 	#additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
 	sleep $delayErrorReopen;
 	#
-	echo "Cannot open directory $1 in Finder.";
+	echo "An error occured when opening directory $1 in Finder.";
 	echo "Reverting to previous directory $prevDir";
 	cd - > /dev/null;
 	echo 'Please try again.';
