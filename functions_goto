@@ -662,6 +662,8 @@ function navigate {
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
 	echo;
+	echo '**************************************************'
+	echo;
 	echo 'Enter the path of the directory you want to visit. ';
 	echo "Current directory: `pwd`";
 	echo;
