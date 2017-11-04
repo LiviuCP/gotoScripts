@@ -357,7 +357,7 @@ function goToMenu {
 		echo 'Mapping performed successfully.';
 		return 0;
 	    elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
-		echo 'Aborted by user.';
+		echo "You exited the $menuType menu.";
 		return 0;
 	    else
 		clear;
@@ -409,7 +409,7 @@ function goToMenu {
 	# user chooses to quit the function
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
-	    echo 'Aborted by user.';
+	    echo "You exited the $menuType menu.";
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
 	    return 0;
@@ -617,7 +617,7 @@ function removeFromFavorites {
 	    break;
 	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
 	    clear;
-	    echo 'Aborted by user.';
+	    echo 'No entry removed from favorites.';
 	    unset -f displayFavoritesFile;
 	    return 0;
 	else
