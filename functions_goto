@@ -673,6 +673,7 @@ function navigate {
 	echo ':r - to remove a directory from favorites';
 	echo ':f - to enter favorites menu';
 	echo ':p - to go to the previously visited directory';
+	echo ':l - to list all items from current directory (press q to return to navigation menu)';
 	echo ':q - to quit navigation mode';
 	echo;
 	read dir_to_visit;
@@ -687,6 +688,9 @@ function navigate {
 	    removeFromFavorites;
 	elif [[ $dir_to_visit == ':p' ]]; then
 	    goToPrevDir;
+	elif [[ $dir_to_visit == ':l' ]]; then
+	    ls -la | less;
+	    echo 'You exited listing menu.';
 	elif [[ $dir_to_visit == ':q' ]]; then
 	    echo 'You exited navigation mode.';
 	    return 0;
