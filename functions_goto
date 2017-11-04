@@ -665,16 +665,20 @@ function navigate {
 	echo '**************************************************'
 	echo;
 	echo 'Enter the path of the directory you want to visit. ';
-	echo "Current directory: `pwd`";
+	echo;
+	echo 'Current directory:';
+	echo;
+	echo `pwd`;
 	echo;
 	echo 'Other available options: ';
-	echo ':h - to enter history menu';
-	echo ':a - to add current directory to favorites';
-	echo ':r - to remove a directory from favorites';
-	echo ':f - to enter favorites menu';
-	echo ':p - to go to the previously visited directory';
-	echo ':l - to list all items from current directory (press q to return to navigation menu)';
-	echo ':q - to quit navigation mode';
+	echo;
+	echo ':h - enter history menu';
+	echo ':a - add current directory to favorites';
+	echo ':r - remove a directory from favorites';
+	echo ':f - enter favorites menu';
+	echo ':p - go to the previously visited directory';
+	echo ':l - list all items from current directory (press q to return to navigation menu)';
+	echo ':q - quit navigation mode';
 	echo;
 	read dir_to_visit;
 	clear;
@@ -690,7 +694,7 @@ function navigate {
 	    goToPrevDir;
 	elif [[ $dir_to_visit == ':l' ]]; then
 	    ls -la | less;
-	    echo 'You exited listing menu.';
+	    echo 'You exited the listing menu.';
 	elif [[ $dir_to_visit == ':q' ]]; then
 	    echo 'You exited navigation mode.';
 	    return 0;
