@@ -249,29 +249,27 @@ function goToMenu {
 	    echo 'q or Q: quit';
 	    echo;
 	    read userChoice;
-	    # user chooses to remove the entry from recent history (if there)
+	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
 	    if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
+		# ensure the entry is removed from recent history (if there)
 		grep -v "$dirPath" "$r_hist_file" > "$temp_file";
 		mv "$temp_file" "$r_hist_file";
-		# if consolidated history had been queried, remove the entry from persistent history
-		if [[ "$input_file" == "$hist_file" ]]; then
-		    grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
-		    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-		    rm "$temp_file";
-		    # otherwise remove the entry from favorites file and excluded history file
-		else
-		    grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
-		    mv "$temp_file" "$e_hist_file";
-		    grep -v "$dirPath" "$fav_file" > "$temp_file";
-		    mv "$temp_file" "$fav_file";
-		fi
+		# ensure the entry is removed from persistent history (if there)
+		grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
+		sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+		rm "$temp_file";
+		# ensure the entry is removed from favorites file (if there)
+		grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
+		mv "$temp_file" "$e_hist_file";
+		grep -v "$dirPath" "$fav_file" > "$temp_file";
+		mv "$temp_file" "$fav_file";
 		# history should be consolidated again
 		cat "$r_hist_file" > "$hist_file";
 		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 		# confirm removal has been successfully performed
-		echo "Entry $dirPath has been removed from $menuType menu.";
+		echo "Entry $dirPath has been removed from the menus.";
 		return 0;
-		# user chooses to replace the directory entry with another (existing) path
+	    # user chooses to replace the directory entry with another (existing) path
 	    elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
 		clear;
 		echo 'Enter the name of the replacing directory: ';
