@@ -264,6 +264,8 @@ function goToMenu {
 		# history should be consolidated again
 		cat "$r_hist_file" > "$hist_file";
 		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+		# confirm removal has been successfully performed
+		echo "Entry $dirPath has been removed from $menuType menu.";
 		return 0;
 		# user chooses to replace the directory entry with another (existing) path
 	    elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
@@ -351,7 +353,6 @@ function goToMenu {
 		cat "$r_hist_file" > "$hist_file";
 		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 		# confirm mapping has been successfully performed
-		echo;
 		echo "Missing directory: $dirPath";
 		echo "Replacing directory: $replacingDir";
 		echo 'Mapping performed successfully.';
