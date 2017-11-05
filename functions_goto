@@ -649,7 +649,7 @@ function removeFromFavorites {
     sed "$dirNr"'d' "$fav_file" > "$temp_file";
     mv "$temp_file" "$fav_file";
     clear;
-    echo 'Entry removed from the favorites menu.';
+    echo "Entry $favDirToRemove removed from the favorites menu.";
 }
 #
 # ******************************************************************************************************************
