@@ -43,8 +43,12 @@ function goToDir {
     fi	 
     #
     if [[ ! -d $1 ]]; then 
+	if [[ -e $1 ]]; then
+	    echo "$1 is not a directory.";
+	    return 1;
+	fi
 	echo "Invalid directory $1";
-	echo 'It might not exist or have been deleted.';
+	echo 'Either is the name invalid (please check spelling) or the directory has been deleted.';
 	return 1;  
     fi
     # create the history files if they don't already exist
