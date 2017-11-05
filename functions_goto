@@ -239,7 +239,7 @@ function goToMenu {
     # handles the case when the directory chosen for visiting does not exist
     function handleMissingDirectory {
 	clear;
-	echo "Error! No valid directory on line $dirNr of $input_file.";
+	echo "Invalid path $dirPath";
 	echo 'The directory might have been moved or deleted.';
 	while [[ '1' == '1' ]]; do
 	    echo;
@@ -362,11 +362,12 @@ function goToMenu {
 		echo 'Mapping performed successfully.';
 		return 0;
 	    elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
+		clear;
 		echo "You exited the $menuType menu.";
 		return 0;
 	    else
 		clear;
-		echo 'Invalid option. Please try again.';
+		echo 'Invalid option! Please try again.';
 	    fi
 	done
     }
@@ -472,7 +473,7 @@ function goToMenu {
 	    return 0;
 	else
 	    eval "$display";
-	    echo 'Invalid value. Please try again.';
+	    echo 'Invalid option! Please try again.';
 	    echo;
 	    read dirNr;
 	fi
@@ -627,7 +628,7 @@ function removeFromFavorites {
 	    return 0;
 	else
 	    displayFavoritesFile;
-	    echo 'Invalid value! Please try again.';
+	    echo 'Invalid option! Please try again.';
 	    echo;
 	    read dirNr;
 	fi
