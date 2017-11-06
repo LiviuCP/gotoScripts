@@ -1,0 +1,161 @@
+Thank you for downloading this script.
+
+Please read this file prior to running it!
+
+=====================================================
+
+0. DISCLAIMER
+
+This script was created for home use. It's primarily intended for geeks (like me) that enjoy using the CLI.
+
+Do not use it on servers, business systems or other "critical" devices. It hasn't been tested thoroughly and there might still be some bugs.
+
+To conclude, use it at your own risk. I will not be held accountable for any damage or loss it might cause whatsoever. 
+
+1. INTRODUCTION
+
+This script file contains various functions that are used for navigating through the file system.
+
+The navigation occurs in three steps when calling the goto function:
+- a cd is run in the terminal to the chosen directory
+- all existing Finder windows are closed
+- a new Finder window is opened to the new location
+
+Hence a synchronization of the current directory in terminal and Finder is obtained. 
+
+2. Supported systems
+
+Currently only the Mac OS / OS X is supported. However with some modifications the script can be run on Linux (and even on Windows if installing Git BASH) in CLI mode only.
+
+On Linux a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the modified script in a terminal embedded in the Dolphin window (the synchronization is made by the system). 
+
+3. Installation
+
+Copy the script in a chosen location. Then configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command. Restart the terminal once ready and start using the functionality.
+
+4. Known issues/bugs
+
+None so far. However if any of them are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
+
+5. Functionality
+
+Following features are contained in the script:
+- a function used for navigating through directories: goToDir
+- a function used for accessing the history or favorites menu: goToMenu
+- a function used for going to the previously visited directory: goToPrevDir
+- a function used for adding a directory to favorites: addToFavorites
+- a function used for removing a directory from favorites: removeFromFavorites
+- a function used for navigating through directories in an interactive way: navigate
+
+5.1. The goto functionality
+
+Enter the function name followed by the path of the directory you wish to visit.
+
+You can enter:
+- absolute paths
+- relative paths
+- paths with wildcards
+
+5.2. The history and favorites menus
+
+The history menu keeps track of the:
+- recently visited directories (up to 5 entries)
+- most visited directories which are sorted in reverse order (up to 20 entries)
+
+The favorites menu contains the directories the user previously added to the list of preferred directories. It is not limited in number of entries, however it's recommended to use it for storing the so called entry-point directories (like Desktop, Pictures, Documents, etc) or dirs that are visited on a very frequent basis.
+
+When in the menus, you can toggle between history and favorites by entering t.
+
+When choosing an entry (enter the number) from one of the two menus the directory is automatically visited by running the goto function.
+
+For entering in favorites menu please add option -f when running the function. 
+
+5.3. Visiting the previous directory
+
+This is done by running the goToPrevDir function. You can run it as many times as you wish. The system will toggle between the two directories.
+
+5.4. Adding a directory to favorites
+
+This function can be run in two ways:
+- without any argument: the current directory is added to favorites if not already there
+- with an argument which is the path of the directory to be added (relative, absolute or paths with wildcards are allowed)
+
+5.5. Removing a directory from favorites
+
+Simply run the removeFromFavorites function without any arguments. A menu will be opened. Choose the entry number of the directory to be removed from favorites.
+
+5.6. Navigation functionality
+
+This is my favorite. When running this function a navigation mode will be opened. This mode practically combines the above functions in a unified interface which is kept open until the user decides to quit.
+
+You can:
+- visit directories by directly entering the path (same rules as above) without any function name
+- add/remove directories to favorites (you can only add the current directory to favorites in this mode)
+- go to previous directory
+- enter the history/favorites menus
+- list the files and directories contained the current dir
+
+6. The history functionality
+
+Each time a directory is visited, the event is tracked in a history file. There are four files where this tracking is done:
+- the recent history file
+- the persistent history file
+- the consolidated history file
+- the excluded history file
+
+6.1. Recent history
+
+Most recently visited directory paths are mentioned here.
+
+6.2. Persistent history
+
+All paths except the ones from excluded history are mentioned here along with the number of visits. When a new directory is visited the number of visits is updated. This occurs in all situations except the one when the previous directory is the same with the visited one (in this case no history file gets updated and a warning is issued in the terminal).
+
+The file is sorted each time it is updated and the most visited paths (up to 20) are added to a consolidated history file.
+
+6.3. Consolidated history
+
+This file consolidates the entries contained in the previous 2 files. A unified interface is provided to the user for accessing the history.
+
+6.4. Excluded history
+
+When a directory is added to favorites its entry from the persistent history file is added to this file. This way the number of visits continues to be tracked and in the same time the path is separated from consolidated history.
+
+When the directory is removed from favorites the entry is moved back to persistent history.
+
+If the directory hadn't been visited prior to adding to favorites an entry with 0 visits is created in the excluded history file.
+
+7. Handling missing directories
+
+It can happen that for an entry chosen from one of the 2 above mentioned menus the directory the path doesn't exist anymore. This can happen for certain reasons:
+- the directory has been deleted
+- the directory has been moved, renamed or a combination of both
+
+In this case the user has two options:
+- remove the entry from the menus
+- remap the path to an existing one (for example when the directory has been renamed)
+
+7.1. Removing the path
+
+When this option is chosen the path is removed from all menus and files. The number of visits is lost.
+
+7.2. Remapping
+
+If the user chooses to remap the path to an existing one, he has two options:
+- remap to a path that is not contained in favorites or consolidated history. In this case the path is replaced in the menus with the new path and the number of visits is kept.
+- remap to a path that already exists in the menus. In this situation, the no more existing path is removed from the menus. The number of visits of the replacing path is updated only if the removed path had a greater number. For example if the removed path had 5 visits and the replacing path has 2 visits the the number of visits of the replacing path will be updated to 5.
+
+8. Miscellaneous
+
+It is possible to erase all entries from history, favorites or both.
+
+When erasing entries from history:
+- the recent, persistent and consolidated history files are emptied
+- the history menu becomes inaccessible
+
+When erasing entries from favorites:
+- the favorites file is emptied
+- the entries from excluded history are moved to persistent history and the consolidated history file is updated
+- the favorites menu becomes inaccessible
+
+If either of the menus is inaccessible toggling between the two is disabled. 
