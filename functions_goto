@@ -389,6 +389,8 @@ function goToMenu {
 	display='displayHistory';
 	menuType='history';
     fi
+    # ensure the file exists (even if empty) to prevent any bugs
+    touch "$input_file";
     if [[ ! -s "$input_file" ]]; then
 	echo "There are no entries in the $menuType menu.";
 	unsetHelpers 2> /dev/null;
