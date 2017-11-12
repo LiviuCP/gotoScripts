@@ -197,9 +197,10 @@ function goToMenu {
     #displays the consolidated history menu in a convenient manner for the user
     function displayHistory {
 	tempVar1=`wc -l "$r_hist_file"`;
-	tempVar2=`wc -l "$p_hist_file"`;
+	tempVar2=`wc -l "$hist_file"`;
 	rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
-	pHistEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
+	histEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
+	let pHistEntries=histEntries-rHistEntries;
 	formatFileContent "$hist_file";
 	clear;
 	echo 'NAVIGATION HISTORY';
