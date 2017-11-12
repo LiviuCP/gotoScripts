@@ -15,6 +15,7 @@ e_hist_file=$scriptDir/.excluded_history; #file containing the entries excluded 
 hist_file=$scriptDir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 fav_file=$scriptDir/.goto_favorites; #file containing the directories saved to favorites
 format_file=$scriptDir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
+temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 #
 rHistMaxRows=5; #maximum number of entries allowed in the recent history file
 pHistMaxRows=20; #maximum number of entries allowed in the persistent history file
@@ -32,8 +33,6 @@ function goToDir {
     delayBeforeClose=0.2; #number of seconds of delay before using osascript to close the Finder window
     delayAfterReopen=0.3; #number of seconds of delay after re-opening the Finder window
     delayErrorReopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
-    # temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$scriptDir/.temp;
     #
     # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
     if [[ -z $1 ]]; then 
@@ -190,9 +189,11 @@ function goToMenu {
 	> "$format_file";
 	while read currentEntry;
 	do
-	    currentEntryFormatted=`basename "$currentEntry"`' : '"$currentEntry";
-	    echo $currentEntryFormatted >> "$format_file";
+	    currentEntryFormatted=`basename "$currentEntry"`':     '"$currentEntry";
+	    echo "$currentEntryFormatted" >> "$format_file";
 	done < "$input_file"
+	column -t -s ':' "$format_file" > "$temp_file";
+	mv "$temp_file" "$format_file";
     }
     #displays the consolidated history menu in a convenient manner for the user
     function displayHistory {
@@ -209,7 +210,7 @@ function goToMenu {
 	echo;
 	cat -n "$format_file" | head -"$rHistEntries";
 	echo;
-	echo '-- MOST VISITED DIRECTORIES --';
+	echo '--   MOST VISITED DIRECTORIES   --';
 	echo;
 	cat -n "$format_file" | tail -"$pHistEntries";
 	echo;
@@ -513,8 +514,6 @@ function goToPrevDir {
 #
 # used for adding a directory (either the current one or another) to favorites
 function addToFavorites {
-    #temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$scriptDir/.temp;
     #
     # Step 1: check if the user entered an argument or not
     # - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
@@ -582,8 +581,6 @@ function addToFavorites {
 #
 # this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
-    #temporary file used for various operations (to be removed each time the operation it is used in finishes)
-    temp_file=$scriptDir/.temp;
     #
     # Step 1: check if the favorites file exists and is not empty
     if [[ ! -f "$fav_file" ]]; then
