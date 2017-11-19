@@ -150,10 +150,9 @@ function goToDir {
 	visitsCount=`echo $pHistMatchedRow | cut -f 2 -d ';'`;
 	let "visitsCount=visitsCount+1";
 	pHistReplacingRow="$extractedPath"';'"$visitsCount";
-	sed -e "s+$pHistMatchedRow+$pHistReplacingRow+g" "$p_hist_file" > "$temp_file";
-	mv "$temp_file" "$p_hist_file";
-	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-	mv "$temp_file" "$p_hist_file";
+	grep -v "$pHistMatchedRow" "$p_hist_file" > "$temp_file";
+	echo "$pHistReplacingRow" >> "$temp_file";
+	sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
     else
 	eHistMatchedRow=`grep "$currentDir"';' "$e_hist_file"`;
 	if [[ $? == 0 ]]; then
@@ -161,7 +160,8 @@ function goToDir {
 	    visitsCount=`echo $eHistMatchedRow | cut -f 2 -d ';'`;
 	    let "visitsCount=visitsCount+1";
 	    eHistReplacingRow="$extractedPath"';'"$visitsCount";
-	    sed -e "s+$eHistMatchedRow+$eHistReplacingRow+g" "$e_hist_file" > "$temp_file";
+	    grep -v "$eHistMatchedRow" "$e_hist_file" > "$temp_file";
+	    echo "$eHistReplacingRow" >> "$temp_file";
 	    mv "$temp_file" "$e_hist_file";
 	else
 	    echo "$currentDir"';1' >> "$p_hist_file";
@@ -322,7 +322,8 @@ function goToMenu {
 		# - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
 		if [[ $replacingDirVisits == '-1' ]]; then
 		    replacedDirReplacingRow="$replacingDir"';'"$replacedDirVisits";
-		    sed -e "s+$replacedDirMatchedRow+$replacedDirReplacingRow+g" "$replaced_dir_file" > "$temp_file";
+		    grep -v "$replacedDirMatchedRow" "$replaced_dir_file" > "$temp_file";
+		    echo "$replacedDirReplacingRow" >> "$temp_file";
 		    mv "$temp_file" "$replaced_dir_file";
 		    # if missing dir had been in the persistent history file: re-sort file
 		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
@@ -338,7 +339,8 @@ function goToMenu {
 		    if [[ $replacingDirVisits -lt $replacedDirVisits ]]; then
 			replacingDirPath=`echo $replacingDirEntry | cut -f 1 -d ';'`;
 			replacingDirReplacingRow="$replacingDirPath"';'"$replacedDirVisits";
-			sed -e "s+$replacingDirEntry+$replacingDirReplacingRow+g" "$visits_file" > "$temp_file";
+			grep -v "$replacingDirEntry" "$visits_file" > "$temp_file";
+			echo "$replacingDirReplacingRow" >> "$temp_file";
 			mv "$temp_file" "$visits_file";
 		    fi
 		    # remove the replaced directory from its file (either persistent history or excluded history file
