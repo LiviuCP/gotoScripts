@@ -676,7 +676,7 @@ function navigate {
 	echo;
 	echo `pwd`;
 	echo;
-	echo 'Other available options: ';
+	echo 'Other available options (case-sensitive): ';
 	echo;
 	echo ':h - enter history menu';
 	echo ':a - add current directory to favorites';
