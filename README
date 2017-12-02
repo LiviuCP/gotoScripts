@@ -31,11 +31,32 @@ On Linux a GUI mode might be available depending on distribution. For example on
 
 3. Installation
 
-Copy the script in a chosen location. Then configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command. Restart the terminal once ready and start using the functionality.
+If you wish to use the goto script without the move, copy and paste functionality just pull from the repo and ensure you are in the master branch. Then follow these steps:
+
+a. Copy the script in a chosen location.
+b. Configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command.
+c. Restart the terminal once ready and start using the functionality.
+
+If you wish to use the move, copy and paste scripts (https://github.com/LiviuCP/ClipboardScripts) into the navigate mode please follow thse steps:
+
+A. Pull the ClipboardScripts repository (see above link). Consult the README file provided in this repo for more details regarding installation and usage.
+B. Pull the goto script, checkout the includeMoveCopyPaste branch and follow the steps a, b, c mentioned above.
 
 4. Known issues/bugs
 
-None so far. However if any of them are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
+Currently there is only one known bug: when in navigation mode directories that contain spaces in their name cannot be accessed when entering the full directory name. For example if you have a directory called 'Test Test' you cannot access it by entering this name in the navigation mode.
+
+A workaround would be entering a wildcard, like for example Te* (and without ' or " as these are interpreted literally by function).
+
+However even with this workaround if you have directories that begin with the same letters there might still be issues. For example if you also have a 'Test' directory, if you enter Te* this directory will be the one accessed and not 'Test Test'. And as mentioned before, even if you enter 'Test T'* the directory 'Test Test' will still not be accessed as the expression will be split into 2 arguments ($1 is 'Test and $2 is T'*) and only the first one will be passed to the goToDir function.
+
+The "healthy" workaround for the moment would be exiting the navigate mode and running the goToDir function directly with the directory name (either putting 'Test Test' as argument or using a wildcard). This will work and you will be able to access the target folder.
+
+You can also prevent this issue by avoiding putting spaces in the directory names. I warmly recommend this approach. I also recommend that (unless specifically required) no special characters are used in a file or directory name. By this I mean characters other than: literals, numbers and underscore.
+
+As soon as a fix is found to this bug I will update the repository accordingly so you can retrieve the corrected code. Sorry for any inconvenience!
+
+If any other bugs are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
 
 5. Functionality
 
