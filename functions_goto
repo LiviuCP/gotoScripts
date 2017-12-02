@@ -471,7 +471,7 @@ function goToMenu {
 		> "$p_hist_file";
 	    fi
 	    clear;
-	    echo "Content of file $input_file has been flushed.";
+	    echo "Content of $menuType menu has been erased.";
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
 	    return 0;
