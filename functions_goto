@@ -254,7 +254,7 @@ function goToMenu {
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
 	    if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
 		# ensure the entry is removed from recent history (if there)
-		grep -v "$dirPath" "$r_hist_file" > "$temp_file";
+		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
 		mv "$temp_file" "$r_hist_file";
 		# ensure the entry is removed from persistent history (if there)
 		grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
