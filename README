@@ -31,7 +31,16 @@ On Linux a GUI mode might be available depending on distribution. For example on
 
 3. Installation
 
-Copy the script in a chosen location. Then configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command. Restart the terminal once ready and start using the functionality.
+If you wish to use the goto script without the move, copy and paste functionality just pull from the repo and ensure you are in the master branch. Then follow these steps:
+
+a. Copy the script in a chosen location.
+b. Configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command.
+c. Restart the terminal once ready and start using the functionality.
+
+If you wish to use the move, copy and paste scripts (https://github.com/LiviuCP/ClipboardScripts) into the navigate mode please follow thse steps:
+
+A. Pull the ClipboardScripts repository (see above link). Consult the README file provided in this repo for more details regarding installation and usage.
+B. Pull the goto script, checkout the includeMoveCopyPaste branch and follow the steps a, b, c mentioned above.
 
 4. Known issues/bugs
 
