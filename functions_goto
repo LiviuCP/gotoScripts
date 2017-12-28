@@ -678,12 +678,12 @@ function navigate {
 	echo;
 	echo 'Other available options (case-sensitive): ';
 	echo;
+	echo ':  -  enter a command';
 	echo ':h - enter history menu';
 	echo ':a - add current directory to favorites';
 	echo ':r - remove a directory from favorites';
 	echo ':f - enter favorites menu';
 	echo ':p - go to the previously visited directory';
-	echo ':l - list all items from current directory (press q to return to navigation menu)';
 	echo ':m - select items to be moved to another directory (interactive mode only)';
 	echo ':c - select items to be copied to another directory (interactive mode only)';
 	echo ':pst - move or copy the selected items to the current directory (interactive mode only)';
@@ -691,7 +691,15 @@ function navigate {
 	echo;
 	read dir_to_visit;
 	clear;
-	if [[ $dir_to_visit == ':h' ]]; then
+	if [[ $dir_to_visit == ':' ]]; then
+	    echo 'Enter the required command (press ENTER to quit):';
+	    read command;
+	    if [[ -z "$command" ]]; then
+		clear;
+		echo 'No command entered. You returned to navigation menu';
+	    fi
+	    eval "$command";
+	elif [[ $dir_to_visit == ':h' ]]; then
 	    goToMenu;
 	elif [[ $dir_to_visit == ':f' ]]; then
 	    goToMenu -f;
@@ -701,9 +709,6 @@ function navigate {
 	    removeFromFavorites;
 	elif [[ $dir_to_visit == ':p' ]]; then
 	    goToPrevDir;
-	elif [[ $dir_to_visit == ':l' ]]; then
-	    ls -la | less;
-	    echo 'You exited the listing menu.';
 	elif [[ $dir_to_visit == ':m' ]]; then
 	    clipboard --move;
 	elif [[ $dir_to_visit == ':c' ]]; then
