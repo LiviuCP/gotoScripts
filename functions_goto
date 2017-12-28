@@ -678,6 +678,7 @@ function navigate {
 	echo;
 	echo 'Other available options (case-sensitive): ';
 	echo;
+	echo ':  -  enter a command';
 	echo ':h - enter history menu';
 	echo ':a - add current directory to favorites';
 	echo ':r - remove a directory from favorites';
@@ -688,7 +689,15 @@ function navigate {
 	echo;
 	read dir_to_visit;
 	clear;
-	if [[ $dir_to_visit == ':h' ]]; then
+	if [[ $dir_to_visit == ':' ]]; then
+	    echo 'Enter the required command (press ENTER to quit):';
+	    read command;
+	    if [[ -z "$command" ]]; then
+		clear;
+		echo 'No command entered. You returned to navigation menu';
+	    fi
+	    eval "$command";
+	elif [[ $dir_to_visit == ':h' ]]; then
 	    goToMenu;
 	elif [[ $dir_to_visit == ':f' ]]; then
 	    goToMenu -f;
