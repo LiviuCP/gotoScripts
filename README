@@ -12,6 +12,8 @@ Do not use it on servers, business systems or other "critical" devices. It hasn'
 
 To conclude, use it at your own risk. I will not be held accountable for any damage or loss it might cause whatsoever. 
 
+Please let me know if you find any inconsistent information in this document so I can update it.
+
 1. INTRODUCTION
 
 This script file contains various functions that are used for navigating through the file system.
@@ -44,7 +46,7 @@ B. Pull the goto script, checkout the includeMoveCopyPaste branch and follow the
 
 4. Known issues/bugs
 
-Currently there is only one known bug: when in navigation mode directories that contain spaces in their name cannot be accessed when entering the full directory name. For example if you have a directory called 'Test Test' you cannot access it by entering this name in the navigation mode.
+1) When in navigation mode directories that contain spaces in their name cannot be accessed when entering the full directory name. For example if you have a directory called 'Test Test' you cannot access it by entering this name in the navigation mode.
 
 A workaround would be entering a wildcard, like for example Te* (and without ' or " as these are interpreted literally by function).
 
@@ -55,6 +57,14 @@ The "healthy" workaround for the moment would be exiting the navigate mode and r
 You can also prevent this issue by avoiding putting spaces in the directory names. I warmly recommend this approach. I also recommend that (unless specifically required) no special characters are used in a file or directory name. By this I mean characters other than: literals, numbers and underscore.
 
 As soon as a fix is found to this bug I will update the repository accordingly so you can retrieve the corrected code. Sorry for any inconvenience!
+
+2) When running the goto function there are cases when either the Finder window is not re-opened (in the new directory) or when the window is re-opened but inactive (it cannot be accessed when pressing CMD-TAB or when typing Finder in the Spotlight).
+
+Workarounds available are:
+- for the case when the window does not appear: run the goTo function again with argument '.' (current directory)
+- for the case when the window is inactive: click with the mouse on the window
+
+Currently I don't have any clue about how this bug can be fixed. If you have any ideas please feel free to share! Thank you.
 
 If any other bugs are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
 
@@ -114,7 +124,12 @@ You can:
 - add/remove directories to favorites (you can only add the current directory to favorites in this mode)
 - go to previous directory
 - enter the history/favorites menus
-- list the files and directories contained the current dir
+- run any other commands that you would enter when not in navigation mode: mkdir, ls, pwd, script aliases etc.
+- use the move, copy and paste functionality
+
+The last feature is available if you pulled the code from the includeMoveCopyPaste branch. However you can still use this functionality from master branch if you installed the ClipboardScripts as indicated in Step 3. What you need to do is:
+- enter the command mode by entering character ':' and hitting RETURN (ENTER)
+- enter the move/copy/paste command that you would otherwise enter when not in navigation mode and press ENTER
 
 6. The history functionality
 
