@@ -24,15 +24,12 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 #
 # GLOBAL FUNCTIONS
 #
-# This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
+# This function is used for navigating to a new directory by using a cd command
+# It also memorizes the visited directories in history files
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 function goToDir {
-    # delays that are necessary for the error-free behavior of the function
-    delayBeforeClose=0.2; #number of seconds of delay before using osascript to close the Finder window
-    delayAfterReopen=0.3; #number of seconds of delay after re-opening the Finder window
-    delayErrorReopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
     #
     # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
     if [[ -z $1 ]]; then 
@@ -65,58 +62,21 @@ function goToDir {
     prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
     cd "$1";
     #
-    # Step 3: close Finder if cd to the new dir had been successful
+    # Step 3: check if the cd operation has been successful
     if [[ $? != 0 ]]; then 
 	echo "Cannot change the directory to $1";
 	echo 'The cd command returned an error.';
 	echo 'Please try again.';
 	return 1;  
-    else
-	#enter a delay to prevent any unwanted behavior (in case the script has just been run and the Finder window re-opening process is not complete)
-	sleep $delayBeforeClose;
-	osascript -e 'quit app "Finder"';
     fi
     #
-    # Step 4: re-open Finder in the new directory if previous close operation had been succesful;
-    # Then check if re-open was successful:
-    #     a) if not, terminate the script
-    #     b) if yes, proceed to step 5
-    if [[ $? != 0 ]]; then 
-	echo 'An error occured when closing Finder.';
-	echo "Reverting to previous directory $prevDir";
-	cd - > /dev/null;
-	echo 'Please try again.';
-	#ensure the terminal stays in the foreground
-	open –a terminal;
-	return 1;
-    else
-	#open the desired folder in Finder (suppress error as it will be handled in the next step)
-	open . 2> /dev/null;
-	#delay further operations so user does not enter a new path before the directory is completely opened
-	sleep $delayAfterReopen;
-    fi
-    #
-    if [[ $? != 0 ]]; then
-	#additional delay so the user doesn't attempt to re-run the command too soon (otherwise the Finder might crash)
-	sleep $delayErrorReopen;
-	#
-	echo "An error occured when opening directory $1 in Finder.";
-	echo "Reverting to previous directory $prevDir";
-	cd - > /dev/null;
-	echo 'Please try again.';
-	#ensure the terminal stays in the foreground (in case Finder opens but an error is thrown nonetheless)
-	open –a terminal;
-	return 1;
-    fi
-    #
-    # Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the recent history file
+    # Step 4: if cd was done to a different directory than the previous one, update the recent history file
     currentDir=`pwd`;
     clear;
     echo "Previous directory: $prevDir";
     echo "Opened directory: $currentDir";
     if [[ $currentDir == $prevDir ]]; then
 	echo 'The current directory remains unchanged!';
-	open -a terminal;
 	return 0;
     fi
     nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
@@ -136,7 +96,7 @@ function goToDir {
     cat "$temp_file" >> "$r_hist_file";
     rm "$temp_file";
     #
-    # Step 6: check if the entry already exists in the persistent history file
+    # Step 5: check if the entry already exists in the persistent history file
     # - if yes: update the persistent history file, then sort it in reverse order by number of visits
     # - if not, check if included in excluded history file
     #   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
@@ -170,11 +130,9 @@ function goToDir {
 	fi
     fi
     #
-    # Step 7: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
+    # Step 6: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
     cat "$r_hist_file" > "$hist_file";
     head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-    # no matter how the function works the terminal must remain the active window after the script finishes execution
-    open -a terminal;
 }
 #
 # ******************************************************************************************************************
