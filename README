@@ -18,22 +18,36 @@ Please let me know if you find any inconsistent information in this document so 
 
 This script file contains various functions that are used for navigating through the file system.
 
-The navigation occurs in three steps when calling the goto function:
+On Mac OS the navigation occurs in three steps when calling the goto function:
 - a cd is run in the terminal to the chosen directory
 - all existing Finder windows are closed
 - a new Finder window is opened to the new location
 
-Hence a synchronization of the current directory in terminal and Finder is obtained. 
+Hence a synchronization of the current directory in terminal and Finder is obtained.
+
+On the Linux version only the first step is executed as the script runs in CLI-mode only. For more details see section 2.
 
 2. Supported systems
 
-Currently only the Mac OS / OS X is supported. However with some modifications the script can be run on Linux (and even on Windows if installing Git BASH) in CLI mode only.
+a. Mac OS (OS X)
 
-On Linux a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the modified script in a terminal embedded in the Dolphin window (the synchronization is made by the system). 
+On Mac OS the "full GUI" mode is supported. This means the script is synchronized with the Finder window. When changing the current directory using the goto function, the Finder window is closed and then re-opened in the new directory. The inverse operation (changing the current directory in terminal when modifying it in Finder) is not supported.
+
+b. Linux
+
+On the Linux version the "CLI" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
+
+However a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the CLI-only script in a terminal embedded in the Dolphin window. Unlike the Mac OS script version the synchronization is made by the system and not by script.
+
+c. Windows
+
+The Linux script version could also be run in Windows using the a Unix-CLI emulator like Git Bash. However there might be some limitations in functionality. So far I haven't run any tests on Windows so I cannot provide further advice regarding behavior.
 
 3. Installation
 
-If you wish to use the goto script without the move, copy and paste functionality just pull from the repo and ensure you are in the master branch. Then follow these steps:
+I. On Mac OS:
+
+If you wish to use the goto script without the move, copy and paste functionality just clone from the repo. Then ensure you are in the master branch and follow these steps:
 
 a. Copy the script in a chosen location.
 b. Configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command.
@@ -42,7 +56,11 @@ c. Restart the terminal once ready and start using the functionality.
 If you wish to use the move, copy and paste scripts (https://github.com/LiviuCP/ClipboardScripts) into the navigate mode please follow thse steps:
 
 A. Pull the ClipboardScripts repository (see above link). Consult the README file provided in this repo for more details regarding installation and usage.
-B. Pull the goto script, checkout the includeMoveCopyPaste branch and follow the steps a, b, c mentioned above.
+B. Clone the goto script, checkout the includeMoveCopyPaste branch and follow the steps a, b, c mentioned above.
+
+II. On Linux/Windows
+
+Same steps, however instead of the master branch use linuxMaster and instead of the includeMoveCopyPaste use linuxIncludeMoveCopyPaste.
 
 4. Known issues/bugs
 
@@ -66,7 +84,16 @@ Workarounds available are:
 
 Currently I don't have any clue about how this bug can be fixed. If you have any ideas please feel free to share! Thank you.
 
+3) It is currently not possible to use ~ in navigation mode for visiting the home directory.
+
+The workaround is to enter keyword : for entering command mode. The enter the goto function with argument ~ and hit ENTER.
+
+The repo will be updated once a fix is found.
+
+
 If any other bugs are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
+
+For bugs related to the move, copy and paste script please check the README file from the ClipboardScripts repo (https://github.com/LiviuCP/ClipboardScripts).
 
 5. Functionality
 
@@ -89,21 +116,25 @@ You can enter:
 
 5.2. The history and favorites menus
 
+For entering the history menu please add option -f when running the goToMenu function.
+
 The history menu keeps track of the:
 - recently visited directories (up to 5 entries)
 - most visited directories which are sorted in reverse order (up to 20 entries)
 
 The favorites menu contains the directories the user previously added to the list of preferred directories. It is not limited in number of entries, however it's recommended to use it for storing the so called entry-point directories (like Desktop, Pictures, Documents, etc) or dirs that are visited on a very frequent basis.
 
-When in the menus, you can toggle between history and favorites by entering t.
+When in the menus, you can toggle between history and favorites by entering t and hitting RETURN.
 
 When choosing an entry (enter the number) from one of the two menus the directory is automatically visited by running the goto function.
 
-For entering in favorites menu please add option -f when running the function. 
+For entering the favorites menu please add option -f when running the menu function.
 
 5.3. Visiting the previous directory
 
 This is done by running the goToPrevDir function. You can run it as many times as you wish. The system will toggle between the two directories.
+
+Note: if previously running the goto function with argument . the goToPrevDir function will re-visit the current directory.
 
 5.4. Adding a directory to favorites
 
@@ -120,16 +151,31 @@ Simply run the removeFromFavorites function without any arguments. A menu will b
 This is my favorite. When running this function a navigation mode will be opened. This mode practically combines the above functions in a unified interface which is kept open until the user decides to quit.
 
 You can:
-- visit directories by directly entering the path (same rules as above) without any function name
-- add/remove directories to favorites (you can only add the current directory to favorites in this mode)
-- go to previous directory
+- visit directories by directly entering the path (same rules as above) without any function name (wildcards can be used) and hitting RETURN/ENTER
+  - for visiting parent directory enter ..
+  - if entering . the current directory will be re-opened (no history update)
+- add/remove directories to/from favorites (you can only add the current directory to favorites in this mode)
+  - enter keyword :a for adding
+  - enter keyword :r for entering the remove menu
+- go to previously visited directory
+  - enter keyword :p
 - enter the history/favorites menus
+  - enter keyword :h for history
+  - enter keyword :f for favorites
 - run any other commands that you would enter when not in navigation mode: mkdir, ls, pwd, script aliases etc.
+  - enter keyword : and hit ENTER (command mode is entered)
 - use the move, copy and paste functionality
+  - enter keyword :m for move
+  - enter keyword :c for copy
+  - enter keyword :pst for paste
 
-The last feature is available if you pulled the code from the includeMoveCopyPaste branch. However you can still use this functionality from master branch if you installed the ClipboardScripts as indicated in Step 3. What you need to do is:
+The last feature is available if you pulled the code from the includeMoveCopyPaste branch. However you can still use this functionality from master (or linuxMaster) branch if you installed the ClipboardScripts as indicated in Step 3. What you need to do is:
 - enter the command mode by entering character ':' and hitting RETURN (ENTER)
 - enter the move/copy/paste command that you would otherwise enter when not in navigation mode and press ENTER
+
+I recommend that you use the includeMoveCopyPaste (or linuxIncludeMoveCopyPaste) branch due to the fact that it comes easier to use the move/copy/paste scripts (less clicks needed).
+
+Also the last feature is available in interactive mode only meaning that the user will be prompted when overriding existing files. Use command mode (:) and enter the move/copy/paste commands if a different behavior is desired.
 
 6. The history functionality
 
@@ -157,7 +203,7 @@ This file consolidates the entries contained in the previous 2 files. A unified 
 
 When a directory is added to favorites its entry from the persistent history file is added to this file. This way the number of visits continues to be tracked and in the same time the path is separated from consolidated history.
 
-When the directory is removed from favorites the entry is moved back to persistent history.
+When the directory is removed from favorites the entry is moved back to persistent history with the actual number of visits.
 
 If the directory hadn't been visited prior to adding to favorites an entry with 0 visits is created in the excluded history file.
 
@@ -169,7 +215,7 @@ It can happen that for an entry chosen from one of the 2 above mentioned menus t
 
 In this case the user has two options:
 - remove the entry from the menus
-- remap the path to an existing one (for example when the directory has been renamed)
+- remap the path to an existing one (for example when the directory has been renamed) to preserve the number of visits
 
 7.1. Removing the path
 
