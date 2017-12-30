@@ -86,9 +86,8 @@ Currently I don't have any clue about how this bug can be fixed. If you have any
 
 3) It is currently not possible to use ~ in navigation mode for visiting the home directory.
 
-The workaround is to enter keyword : for entering command mode. The enter the goto function with argument ~ and hit ENTER.
-
-The repo will be updated once a fix is found.
+However there is a much better alternative: just hit ENTER and you will
+immediately be brought to the home directory.
 
 
 If any other bugs are discovered please feel free to comment on my Github page or write me an e-mail (liviucst@gmail.com).
@@ -113,6 +112,8 @@ You can enter:
 - absolute paths
 - relative paths
 - paths with wildcards
+
+If no argument is entered the user home directory will be visited. If not in navigation mode it is also possible to use ~ as argument with the goto function to visit the home folder.
 
 5.2. The history and favorites menus
 
@@ -154,6 +155,7 @@ You can:
 - visit directories by directly entering the path (same rules as above) without any function name (wildcards can be used) and hitting RETURN/ENTER
   - for visiting parent directory enter ..
   - if entering . the current directory will be re-opened (no history update)
+  - hit ENTER and the home directory will become the current directory
 - add/remove directories to/from favorites (you can only add the current directory to favorites in this mode)
   - enter keyword :a for adding
   - enter keyword :r for entering the remove menu
@@ -169,13 +171,22 @@ You can:
   - enter keyword :c for copy
   - enter keyword :pst for paste
 
-The last feature is available if you pulled the code from the includeMoveCopyPaste branch. However you can still use this functionality from master (or linuxMaster) branch if you installed the ClipboardScripts as indicated in Step 3. What you need to do is:
+The last feature is available if you pulled the code from branches includeMoveCopyPaste and linuxIncludeMoveCopyPaste. However you can still use this functionality from master (or linuxMaster) branch if you installed the ClipboardScripts as indicated in Step 3. What you need to do is:
 - enter the command mode by entering character ':' and hitting RETURN (ENTER)
 - enter the move/copy/paste command that you would otherwise enter when not in navigation mode and press ENTER
 
 I recommend that you use the includeMoveCopyPaste (or linuxIncludeMoveCopyPaste) branch due to the fact that it comes easier to use the move/copy/paste scripts (less clicks needed).
 
 Also the last feature is available in interactive mode only meaning that the user will be prompted when overriding existing files. Use command mode (:) and enter the move/copy/paste commands if a different behavior is desired.
+
+Important note: when using the : option for entering command mode on a Linux OS make sure you launch non-CLI jobs in the background by using the ampersand (&). Not using ampersand for this type of jobs might cause unexpected behavior and/or closing of navigation mode.
+
+An example would be launching emacs (GUI version) for opening a document. In detail:
+- in navigation mode type ':' and hit RETURN
+- write emacs [document_name] & and hit RETURN
+
+The same can be applied for terminal jobs that take longer to execute so you
+can continue to use navigation mode while the job runs.
 
 6. The history functionality
 
@@ -240,4 +251,4 @@ When erasing entries from favorites:
 - the entries from excluded history are moved to persistent history and the consolidated history file is updated
 - the favorites menu becomes inaccessible
 
-If either of the menus is inaccessible toggling between the two is disabled. 
+If either of the menus is inaccessible toggling between the two is disabled.
