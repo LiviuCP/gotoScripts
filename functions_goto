@@ -31,14 +31,8 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 #
 function goToDir {
     #
-    # Step 1: check if an argument was entered and the argument is valid (entered path exists and is a directory); check if the history files exist
-    if [[ -z $1 ]]; then 
-	echo 'No arguments entered.';
-	echo 'Please try again.';
-	return 1;
-    fi	 
-    #
-    if [[ ! -d $1 ]]; then 
+    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory); check if the history files exist
+    if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
 	if [[ -e $1 ]]; then
 	    echo "$1 is not a directory.";
 	    return 1;
@@ -58,14 +52,17 @@ function goToDir {
 	> "$e_hist_file";
     fi
     #
-    # Step 2: memorize current directory and cd to the new directory
+    # Step 2: memorize current directory and cd to the new directory (if no argument had been entered, cd to the user home directory)
     prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
-    cd "$1";
+    if [[ -z $1 ]]; then
+	cd ~ ;
+    else
+	cd "$1";
+    fi
     #
     # Step 3: check if the cd operation has been successful
     if [[ $? != 0 ]]; then 
-	echo "Cannot change the directory to $1";
-	echo 'The cd command returned an error.';
+	echo 'Cannot change directory, the cd command returned an error.';
 	echo 'Please try again.';
 	return 1;  
     fi
@@ -628,7 +625,7 @@ function navigate {
 	echo;
 	echo '**************************************************'
 	echo;
-	echo 'Enter the path of the directory you want to visit. ';
+	echo 'Enter the path of the directory you want to visit (press RETURN for home directory). ';
 	echo;
 	echo 'Current directory:';
 	echo;
