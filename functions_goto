@@ -231,7 +231,7 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Enter t or T to toggle to the navigation history menu.';
 	fi
-	echo 'Enter cMenu (case-sensitive) to clear the favorite directories menu.';
+	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
 	echo 'Enter q or Q to quit.';
 	echo;
     }
@@ -450,26 +450,19 @@ function goToMenu {
 		    return $?;
 		fi
 	    fi
-	# clear history or the favorites if the user chooses so
+	# clear history (persistent, recent, excluded) if the user chooses to
 	elif [[ $dirNr == 'cMenu' ]]; then
-	    if [[ "$1" == '-f' ]]; then
-		> "$fav_file";
-		# if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
-		grep -v ';0' "$e_hist_file" >> "$p_hist_file";
-		> "$e_hist_file";
-		# as usual re-sort persistent history file when modifying it
-		sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-		mv "$temp_file" "$p_hist_file";
-		# history should be consolidated again
-		cat "$r_hist_file" > "$hist_file";
-		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	    else
-		> "$hist_file";
-		> "$r_hist_file";
-		> "$p_hist_file";
-	    fi
+	    > "$hist_file";
+	    > "$r_hist_file";
+	    > "$p_hist_file";
+	    > "$e_hist_file";
+	    # favorites file should be kept so excluded history should be re-created (0 visits per entry)
+	    while read currentEntry;
+	    do
+		echo "$currentEntry"';0' >> "$e_hist_file";
+	    done < "$fav_file"
 	    clear;
-	    echo "Content of $menuType menu has been erased.";
+	    echo 'Content of navigation history menu has been erased.';
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
 	    return 0;
