@@ -260,7 +260,7 @@ function goToMenu {
 		# ensure the entry is removed from favorites file (if there)
 		grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
 		mv "$temp_file" "$e_hist_file";
-		grep -v "$dirPath" "$fav_file" > "$temp_file";
+		grep -xv "$dirPath" "$fav_file" > "$temp_file";
 		mv "$temp_file" "$fav_file";
 		# history should be consolidated again
 		cat "$r_hist_file" > "$hist_file";
