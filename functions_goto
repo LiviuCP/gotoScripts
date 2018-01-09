@@ -312,7 +312,7 @@ function goToMenu {
 		    replacingDirVisits='-1';
 		fi
 		# remove the entry from recent history (if there)
-		grep -v "$dirPath" "$r_hist_file" > "$temp_file";
+		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
 		mv "$temp_file" "$r_hist_file";
 		# do the actual mapping operation
 		replacedDirMatchedRow=`grep "$dirPath"';' "$replaced_dir_file"`;
