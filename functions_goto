@@ -7,6 +7,7 @@
 #
 scriptDir=`pwd`; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
+logDir=~/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
 r_hist_file=$scriptDir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$scriptDir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
@@ -31,7 +32,7 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 #
 function goToDir {
     #
-    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory); check if the history files exist
+    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory); check if the history files exist; check if the log directory and the working log file exist
     if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
 	if [[ -e $1 ]]; then
 	    echo "$1 is not a directory.";
@@ -51,6 +52,13 @@ function goToDir {
     if [[ ! -f "$e_hist_file" ]]; then
 	> "$e_hist_file";
     fi
+    # create log directory if not already existent
+    if [[ ! -d "$logDir" ]]; then
+	mkdir "$logDir";
+    fi
+    # ensure the log file for the current day exists; this file tracks all visited directories for the day and ensure they are not added to persistent history more than once
+    w_log_file="$logDir"/`date +"%Y%m%d"`;
+    touch "$w_log_file";
     #
     # Step 2: memorize current directory and cd to the new directory (if no argument had been entered, cd to the user home directory)
     prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
@@ -93,7 +101,20 @@ function goToDir {
     cat "$temp_file" >> "$r_hist_file";
     rm "$temp_file";
     #
-    # Step 5: check if the entry already exists in the persistent history file
+	# Step 5: check if the visited directory path is contained in the log file of the current day:
+    # - if yes: consolidate history, no more actions required
+    # - if not: go to next step
+    grep -x "$currentDir" "$w_log_file" > /dev/null;
+    if [[ $? == 0 ]]; then
+	cat "$r_hist_file" > "$hist_file";
+	head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	# no matter how the function works the terminal must remain the active window after the script finishes execution
+	open -a terminal;
+	return 0;
+    else
+	echo "$currentDir" >> "$w_log_file";
+    fi
+    # Step 6: check if the entry already exists in the persistent history file
     # - if yes: update the persistent history file, then sort it in reverse order by number of visits
     # - if not, check if included in excluded history file
     #   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
@@ -127,7 +148,7 @@ function goToDir {
 	fi
     fi
     #
-    # Step 6: consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
+    # consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
     cat "$r_hist_file" > "$hist_file";
     head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 }
@@ -189,12 +210,14 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Enter t or T to toggle to the navigation history menu.';
 	fi
-	echo 'Enter cMenu (case-sensitive) to clear the favorite directories menu.';
+	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
 	echo 'Enter q or Q to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
     function handleMissingDirectory {
+	# working log file for the current day also needs update (if existing and if the entry is present)
+	w_log_file="$logDir"/`date +"%Y%m%d"`;
 	clear;
 	echo "Invalid path $dirPath";
 	echo 'The directory might have been moved or deleted.';
@@ -208,6 +231,11 @@ function goToMenu {
 	    read userChoice;
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
 	    if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
+		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
+		if [[ -f "$w_log_file" ]]; then
+		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
+		    mv "$temp_file" "$w_log_file";
+		fi
 		# ensure the entry is removed from recent history (if there)
 		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
 		mv "$temp_file" "$r_hist_file";
@@ -218,7 +246,7 @@ function goToMenu {
 		# ensure the entry is removed from favorites file (if there)
 		grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
 		mv "$temp_file" "$e_hist_file";
-		grep -v "$dirPath" "$fav_file" > "$temp_file";
+		grep -xv "$dirPath" "$fav_file" > "$temp_file";
 		mv "$temp_file" "$fav_file";
 		# history should be consolidated again
 		cat "$r_hist_file" > "$hist_file";
@@ -237,15 +265,21 @@ function goToMenu {
 		    echo "Cannot map the missing directory $dirPath.";
 		    return 1;
 		fi
+		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
+		if [[ -f "$w_log_file" ]]; then
+		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
+		    mv "$temp_file" "$w_log_file";
+		fi
 		# ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
 		cd "$replacingDir";
 		replacingDir=`pwd`;
 		cd - > /dev/null;
 		# identify the file where the path of the directory to be replaced lives
-		if [[ "$input_file" == "$hist_file" ]]; then
-		    replaced_dir_file="$p_hist_file";
-		else
+		grep "$dirPath"';' "$e_hist_file" > /dev/null;
+		if [[ $? == 0 ]]; then
 		    replaced_dir_file="$e_hist_file";
+		else
+		    replaced_dir_file="$p_hist_file";
 		fi
 		# check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
 		visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
@@ -269,7 +303,7 @@ function goToMenu {
 		    replacingDirVisits='-1';
 		fi
 		# remove the entry from recent history (if there)
-		grep -v "$dirPath" "$r_hist_file" > "$temp_file";
+		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
 		mv "$temp_file" "$r_hist_file";
 		# do the actual mapping operation
 		replacedDirMatchedRow=`grep "$dirPath"';' "$replaced_dir_file"`;
@@ -298,14 +332,14 @@ function goToMenu {
 			echo "$replacingDirReplacingRow" >> "$temp_file";
 			mv "$temp_file" "$visits_file";
 		    fi
-		    # remove the replaced directory from its file (either persistent history or excluded history file
+		    # remove the replaced directory from its file (either persistent history or excluded history file)
 		    grep -v "$dirPath"';' "$replaced_dir_file" > "$temp_file";
 		    mv "$temp_file" "$replaced_dir_file";
 		    # if missing dir had been in the persistent history file: re-sort file
 		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
 			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 			mv "$temp_file" "$p_hist_file";
-			# if missing dir had been in the excluded history file: re-create favorites file after update
+		    # if missing dir had been in the excluded history file: re-create favorites file after update
 		    else
 			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
 		    fi
@@ -407,26 +441,24 @@ function goToMenu {
 		    return $?;
 		fi
 	    fi
-	# clear history or the favorites if the user chooses so
+	# clear history (persistent, recent, excluded) if the user chooses to
 	elif [[ $dirNr == 'cMenu' ]]; then
-	    if [[ "$1" == '-f' ]]; then
-		> "$fav_file";
-		# if favorites are erased, the content of the excluded history file (except unvisited dirs) should return to the persistent history file
-		grep -v ';0' "$e_hist_file" >> "$p_hist_file";
-		> "$e_hist_file";
-		# as usual re-sort persistent history file when modifying it
-		sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-		mv "$temp_file" "$p_hist_file";
-		# history should be consolidated again
-		cat "$r_hist_file" > "$hist_file";
-		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	    else
-		> "$hist_file";
-		> "$r_hist_file";
-		> "$p_hist_file";
+	    > "$hist_file";
+	    > "$r_hist_file";
+	    > "$p_hist_file";
+	    > "$e_hist_file";
+	    # the working log file also needs to be reset to ensure consistency with the history content
+	    w_log_file="$logDir"/`date +"%Y%m%d"`;
+	    if [[ -f "$w_log_file" ]]; then
+		> "$w_log_file";
 	    fi
+	    # favorites file should be kept so excluded history should be re-created (0 visits per entry)
+	    while read currentEntry;
+	    do
+		echo "$currentEntry"';0' >> "$e_hist_file";
+	    done < "$fav_file"
 	    clear;
-	    echo "Content of $menuType menu has been erased.";
+	    echo 'Content of navigation history menu has been erased.';
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
 	    return 0;
