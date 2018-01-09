@@ -341,14 +341,14 @@ function goToMenu {
 			echo "$replacingDirReplacingRow" >> "$temp_file";
 			mv "$temp_file" "$visits_file";
 		    fi
-		    # remove the replaced directory from its file (either persistent history or excluded history file
+		    # remove the replaced directory from its file (either persistent history or excluded history file)
 		    grep -v "$dirPath"';' "$replaced_dir_file" > "$temp_file";
 		    mv "$temp_file" "$replaced_dir_file";
 		    # if missing dir had been in the persistent history file: re-sort file
 		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
 			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 			mv "$temp_file" "$p_hist_file";
-			# if missing dir had been in the excluded history file: re-create favorites file after update
+		    # if missing dir had been in the excluded history file: re-create favorites file after update
 		    else
 			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
 		    fi
