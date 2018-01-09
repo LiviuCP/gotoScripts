@@ -284,10 +284,11 @@ function goToMenu {
 		replacingDir=`pwd`;
 		cd - > /dev/null;
 		# identify the file where the path of the directory to be replaced lives
-		if [[ "$input_file" == "$hist_file" ]]; then
-		    replaced_dir_file="$p_hist_file";
-		else
+		grep "$dirPath"';' "$e_hist_file" > /dev/null;
+		if [[ $? == 0 ]]; then
 		    replaced_dir_file="$e_hist_file";
+		else
+		    replaced_dir_file="$p_hist_file";
 		fi
 		# check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
 		visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
