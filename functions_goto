@@ -5,7 +5,7 @@
 #
 # GLOBAL VARIABLES
 #
-scriptDir=`pwd`; #get script directory in order to build the paths of the supporting files
+scriptDir=~; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 logDir=~/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
