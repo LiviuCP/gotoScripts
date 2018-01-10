@@ -41,9 +41,9 @@ However a GUI mode might be available depending on distribution. For example on 
 
 c. Windows
 
-The Linux script version could also be run in Windows using the a Unix-CLI emulator like Git Bash. However there might be some limitations in functionality. So far I haven't run any tests on Windows so I cannot provide further advice regarding behavior.
+The Linux script version could also be run in Windows using the a Unix-CLI emulator like Git Bash. However there might be some limitations in functionality. So far I have run a few tests on Windows and the only thing that I noticed is that the script sometimes runs pretty slow. I cannot explain why this happens especially as I only ran it in CLI mode using Git Bash. The reason might be that it is not being run on a native Bash but on an emulator. Neither on Linux nor on OS X did I notice any visible slowness.
 
-3. Installation
+3. INSTALLATION
 
 I. On Mac OS:
 
@@ -62,7 +62,7 @@ II. On Linux/Windows
 
 Same steps, however instead of the master branch use linuxMaster and instead of the includeMoveCopyPaste use linuxIncludeMoveCopyPaste.
 
-4. Known issues/bugs
+4. KNOWN ISSUES/BUGS
 
 1) When in navigation mode directories that contain spaces in their name cannot be accessed when entering the full directory name. For example if you have a directory called 'Test Test' you cannot access it by entering this name in the navigation mode.
 
@@ -94,7 +94,7 @@ If any other bugs are discovered please feel free to comment on my Github page o
 
 For bugs related to the move, copy and paste script please check the README file from the ClipboardScripts repo (https://github.com/LiviuCP/ClipboardScripts).
 
-5. Functionality
+5. FUNCTIONALITY
 
 Following features are contained in the script:
 - a function used for navigating through directories: goToDir
@@ -188,7 +188,7 @@ An example would be launching emacs (GUI version) for opening a document. In det
 The same can be applied for terminal jobs that take longer to execute so you
 can continue to use navigation mode while the job runs.
 
-6. The history functionality
+6. THE HISTORY FUNCTIONALITY
 
 Each time a directory is visited, the event is tracked in a history file. There are four files where this tracking is done:
 - the recent history file
@@ -202,7 +202,9 @@ Most recently visited directory paths are mentioned here.
 
 6.2. Persistent history
 
-All paths except the ones from excluded history are mentioned here along with the number of visits. When a new directory is visited the number of visits is updated. This occurs in all situations except the one when the previous directory is the same with the visited one (in this case no history file gets updated and a warning is issued in the terminal).
+All paths except the ones from excluded history are mentioned here along with the number of visits. When a new directory is visited the first time on the current day the number of visits is incremented. Further visits on the same day are not taken into account. This prevents "fake" reporting which might occur if a directory has been entered many times during a day and then remains unvisited for a long time.
+
+Also if the previous directory is the same with the visited directory the persistent history is not updated.
 
 The file is sorted each time it is updated and the most visited paths (up to 20) are added to a consolidated history file.
 
@@ -212,13 +214,13 @@ This file consolidates the entries contained in the previous 2 files. A unified 
 
 6.4. Excluded history
 
-When a directory is added to favorites its entry from the persistent history file is added to this file. This way the number of visits continues to be tracked and in the same time the path is separated from consolidated history.
+When a directory is added to favorites its entry from the persistent history file is added to this file. This way the number of visits continues to be tracked (same tracking mechanism as for persistent history) and in the same time the path is separated from consolidated history.
 
 When the directory is removed from favorites the entry is moved back to persistent history with the actual number of visits.
 
 If the directory hadn't been visited prior to adding to favorites an entry with 0 visits is created in the excluded history file.
 
-7. Handling missing directories
+7. HANDLING MISSING DIRECTORIES
 
 It can happen that for an entry chosen from one of the 2 above mentioned menus the directory the path doesn't exist anymore. This can happen for certain reasons:
 - the directory has been deleted
@@ -238,17 +240,10 @@ If the user chooses to remap the path to an existing one, he has two options:
 - remap to a path that is not contained in favorites or consolidated history. In this case the path is replaced in the menus with the new path and the number of visits is kept.
 - remap to a path that already exists in the menus. In this situation, the no more existing path is removed from the menus. The number of visits of the replacing path is updated only if the removed path had a greater number. For example if the removed path had 5 visits and the replacing path has 2 visits the the number of visits of the replacing path will be updated to 5.
 
-8. Miscellaneous
+8. MISCELLANEOUS
 
-It is possible to erase all entries from history, favorites or both.
+It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and toggling between history and favorites is disabled. However the favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0.
 
-When erasing entries from history:
-- the recent, persistent and consolidated history files are emptied
-- the history menu becomes inaccessible
+Type cMenu in either history or favorites menus and hit ENTER in order to clear all history.
 
-When erasing entries from favorites:
-- the favorites file is emptied
-- the entries from excluded history are moved to persistent history and the consolidated history file is updated
-- the favorites menu becomes inaccessible
-
-If either of the menus is inaccessible toggling between the two is disabled.
+Note: toggling between history and favorites menus is enabled only if both contain at least one entry.
