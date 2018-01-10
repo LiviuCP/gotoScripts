@@ -108,8 +108,6 @@ function goToDir {
     if [[ $? == 0 ]]; then
 	cat "$r_hist_file" > "$hist_file";
 	head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-	# no matter how the function works the terminal must remain the active window after the script finishes execution
-	open -a terminal;
 	return 0;
     else
 	echo "$currentDir" >> "$w_log_file";
