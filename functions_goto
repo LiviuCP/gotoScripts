@@ -5,9 +5,9 @@
 #
 # GLOBAL VARIABLES
 #
-scriptDir=`pwd`; #get script directory in order to build the paths of the supporting files
+scriptDir=~; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
-logDir=~/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
+logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
 r_hist_file=$scriptDir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$scriptDir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
