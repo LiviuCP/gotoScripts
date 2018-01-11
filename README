@@ -49,8 +49,8 @@ I. On Mac OS:
 
 If you wish to use the goto script without the move, copy and paste functionality just clone from the repo. Then ensure you are in the master branch and follow these steps:
 
-a. Copy the script in a chosen location.
-b. Configure .bashrc or .bash_profile to load it automatically when opening a new terminal window by using the source command.
+a. Copy the script to a chosen location. If the location differs from the user home directory (~) please change the variable $scriptDir to the chosen path (use an absolute path). This variable is used for creating the script files (e.g. persistent history) in the given directory. Although not mandatory I strongly recommend to use same folder with the one where the script resides.
+b. Configure .bashrc or .bash_profile to load the functions automatically (when opening a new terminal window) by using the source command.
 c. Restart the terminal once ready and start using the functionality.
 
 If you wish to use the move, copy and paste scripts (https://github.com/LiviuCP/ClipboardScripts) into the navigate mode please follow thse steps:
