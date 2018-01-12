@@ -649,6 +649,8 @@ function removeFromFavorites {
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
+    # stores previously executed command (if any)
+    prevCommand='';
     clear;
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
@@ -663,16 +665,18 @@ function navigate {
 	echo;
 	echo 'Other available options (case-sensitive): ';
 	echo;
-	echo ':    -  enter a command';
-	echo ':h   -  enter history menu';
-	echo ':a   -  add current directory to favorites';
-	echo ':r   -  remove a directory from favorites';
-	echo ':f   -  enter favorites menu';
-	echo ':p   -  go to the previously visited directory';
-	echo ':m   -  select items to be moved to another directory (interactive mode only)';
-	echo ':c   -  select items to be copied to another directory (interactive mode only)';
-	echo ':pst -  move or copy the selected items to the current directory (interactive mode only)';
-	echo ':q   -  quit navigation mode';
+	echo ':     -  enter a command';
+	echo ':cmd  -  repeat previous command';
+	echo ':scmd -  show previous command';
+	echo ':h    -  enter history menu';
+	echo ':a    -  add current directory to favorites';
+	echo ':r    -  remove a directory from favorites';
+	echo ':f    -  enter favorites menu';
+	echo ':p    -  go to the previously visited directory';
+	echo ':m    -  select items to be moved to another directory (interactive mode only)';
+	echo ':c    -  select items to be copied to another directory (interactive mode only)';
+	echo ':pst  -  move or copy the selected items to the current directory (interactive mode only)';
+	echo ':q    -  quit navigation mode';
 	echo;
 	read dir_to_visit;
 	clear;
@@ -682,8 +686,28 @@ function navigate {
 	    if [[ -z "$command" ]]; then
 		clear;
 		echo 'No command entered. You returned to navigation menu';
+	    else
+		eval "$command";
+	        if [[ $? == 0 ]]; then
+		    prevCommand=$command;
+		else
+		    prevCommand='';
+		fi
 	    fi
-	    eval "$command";
+	elif [[ $dir_to_visit == ':cmd' ]]; then
+	    if [[ -z $prevCommand ]]; then
+		echo 'No command previously executed or previous command ended with errors';
+	    else
+		eval "$prevCommand";
+	    fi
+	elif [[ $dir_to_visit = ':scmd' ]]; then
+	    if [[ -z $prevCommand ]]; then
+		echo 'No command previously executed or previous command ended with errors';
+	    else
+		echo 'Previously executed command is: ';
+		echo;
+		echo "$prevCommand";
+	    fi
 	elif [[ $dir_to_visit == ':h' ]]; then
 	    goToMenu;
 	elif [[ $dir_to_visit == ':f' ]]; then
