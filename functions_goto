@@ -721,7 +721,8 @@ function navigate {
 	echo;
 	read dir_to_visit;
 	clear;
-	if [[ $dir_to_visit == ':' ]]; then
+	case $dir_to_visit in
+	':')
 	    echo 'Enter the required command (press ENTER to quit):';
 	    read command;
 	    if [[ -z "$command" ]]; then
@@ -735,13 +736,15 @@ function navigate {
 		    prevCommand='';
 		fi
 	    fi
-	elif [[ $dir_to_visit == ':cmd' ]]; then
+	    ;;
+	':cmd')
 	    if [[ -z $prevCommand ]]; then
 		echo 'No command previously executed or previous command ended with errors';
 	    else
 		eval "$prevCommand";
 	    fi
-	elif [[ $dir_to_visit = ':scmd' ]]; then
+	    ;;
+	':scmd')
 	    if [[ -z $prevCommand ]]; then
 		echo 'No command previously executed or previous command ended with errors';
 	    else
@@ -749,22 +752,30 @@ function navigate {
 		echo;
 		echo "$prevCommand";
 	    fi
-	elif [[ $dir_to_visit == ':h' ]]; then
+	    ;;
+	':h')
 	    goToMenu;
-	elif [[ $dir_to_visit == ':f' ]]; then
+	    ;;
+	':f')
 	    goToMenu -f;
-	elif [[ $dir_to_visit == ':a' ]]; then
+	    ;;
+	':a')
 	    addToFavorites;
-	elif [[ $dir_to_visit == ':r' ]]; then
+	    ;;
+	':r')
 	    removeFromFavorites;
-	elif [[ $dir_to_visit == ':p' ]]; then
+	    ;;
+	':p')
 	    goToPrevDir;
-	elif [[ $dir_to_visit == ':q' ]]; then
+	    ;;
+	':q')
 	    echo 'You exited navigation mode.';
 	    return 0;
-	else
+	    ;;
+	*)
 	    goToDir `echo "$dir_to_visit"`;
-	fi
+	    ;;
+	esac
     done
 }
 #
