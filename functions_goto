@@ -657,30 +657,39 @@ function navigate {
 	echo;
 	echo '**************************************************'
 	echo;
-	echo 'Enter the path of the directory you want to visit (press RETURN for home directory). ';
-	echo;
 	echo 'Current directory:';
 	echo;
 	echo `pwd`;
 	echo;
-	echo 'Other available options (case-sensitive): ';
-	echo;
-	echo ':     -  enter a command';
-	echo ':cmd  -  repeat previous command';
-	echo ':scmd -  show previous command';
-	echo ':h    -  enter history menu';
-	echo ':a    -  add current directory to favorites';
-	echo ':r    -  remove a directory from favorites';
-	echo ':f    -  enter favorites menu';
-	echo ':p    -  go to the previously visited directory';
-	echo ':m    -  select items to be moved to another directory (interactive mode only)';
-	echo ':c    -  select items to be copied to another directory (interactive mode only)';
-	echo ':pst  -  move or copy the selected items to the current directory (interactive mode only)';
-	echo ':q    -  quit navigation mode';
+	echo 'Enter a command or the path of the directory you want to visit.';
+	echo 'Press ENTER to return to home directory.'
+	echo 'Enter :help (case-sensitive) for the list of of available commands.';
+	echo 'Enter :q to quit navigation mode.';
 	echo;
 	read dir_to_visit;
 	clear;
 	case $dir_to_visit in
+	':help')
+		helpMenu='';
+		helpMenu="$helpMenu"'echo "Navigation commands";';
+		helpMenu="$helpMenu"'echo;';
+		helpMenu="$helpMenu"'echo ":     -  enter a shell command";';
+		helpMenu="$helpMenu"'echo ":cmd  -  repeat previous shell command";';
+		helpMenu="$helpMenu"'echo ":scmd -  show previous shell command";';
+		helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
+		helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
+		helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
+		helpMenu="$helpMenu"'echo ":f    -  enter favorites menu";';
+		helpMenu="$helpMenu"'echo ":p    -  go to the previously visited directory";';
+		helpMenu="$helpMenu"'echo ":m    -  select items to be moved to another directory (interactive mode only)";';
+		helpMenu="$helpMenu"'echo ":c    -  select items to be copied to another directory (interactive mode only)";';
+		helpMenu="$helpMenu"'echo ":pst  -  move or copy the selected items to the current directory (interactive mode only)";';
+		helpMenu="$helpMenu"'echo;';
+		helpMenu="$helpMenu"'echo "Press q to exit";';
+		helpMenu="$helpMenu"'echo;';
+		eval "$helpMenu" | less;
+		echo 'You exited navigation help menu';
+		;;
 	':')
 	    echo 'Enter the required command (press ENTER to quit):';
 	    read command;
