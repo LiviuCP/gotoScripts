@@ -166,6 +166,10 @@ You can:
   - enter keyword :f for favorites
 - run any other commands that you would enter when not in navigation mode: mkdir, ls, pwd, script aliases etc.
   - enter keyword : and hit ENTER (command mode is entered)
+- run the last command which had been successfully executed (when using option ':')
+  - enter keyword :cmd and hit ENTER
+- show the last command which had been successfully executed (when using option ':')
+  - enter keyword :scmd and hit ENTER
 - use the move, copy and paste functionality
   - enter keyword :m for move
   - enter keyword :c for copy
@@ -178,6 +182,8 @@ The last feature is available if you pulled the code from branches includeMoveCo
 I recommend that you use the includeMoveCopyPaste (or linuxIncludeMoveCopyPaste) branch due to the fact that it comes easier to use the move/copy/paste scripts (less clicks needed).
 
 Also the last feature is available in interactive mode only meaning that the user will be prompted when overriding existing files. Use command mode (:) and enter the move/copy/paste commands if a different behavior is desired.
+
+All possible options can be viewed by entering :help in navigation mode.
 
 Important note: when using the : option for entering command mode on a Linux OS make sure you launch non-CLI jobs in the background by using the ampersand (&). Not using ampersand for this type of jobs might cause unexpected behavior and/or closing of navigation mode.
 
