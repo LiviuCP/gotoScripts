@@ -695,7 +695,7 @@ function navigate {
 	    read -e command;
 	    if [[ -z "$command" ]]; then
 		clear;
-		echo 'No command entered. You returned to navigation menu';
+		echo 'Command aborted. You returned to navigation menu';
 	    else
 		eval "$command";
 	        if [[ $? == 0 ]]; then
