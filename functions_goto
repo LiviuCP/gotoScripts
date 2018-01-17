@@ -689,7 +689,7 @@ function navigate {
 		;;
 	':')
 	    echo 'Enter the required command (press ENTER to quit):';
-	    read command;
+	    read -e command;
 	    if [[ -z "$command" ]]; then
 		clear;
 		echo 'No command entered. You returned to navigation menu';
