@@ -674,6 +674,7 @@ function navigate {
 		helpMenu="$helpMenu"'echo "Navigation commands";';
 		helpMenu="$helpMenu"'echo;';
 		helpMenu="$helpMenu"'echo ":     -  enter a shell command";';
+		helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command";';
 		helpMenu="$helpMenu"'echo ":cmd  -  repeat previous shell command";';
 		helpMenu="$helpMenu"'echo ":scmd -  show previous shell command";';
 		helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
@@ -694,6 +695,22 @@ function navigate {
 	    echo 'Enter the required command (press ENTER to quit):';
 	    read -e command;
 	    if [[ -z "$command" ]]; then
+		clear;
+		echo 'Command aborted. You returned to navigation menu';
+	    else
+		eval "$command";
+	        if [[ $? == 0 ]]; then
+		    prevCommand=$command;
+		else
+		    prevCommand='';
+		fi
+	    fi
+	    ;;
+	'::')
+	    echo 'Enter the required command based on previous command';
+	    echo '(press : and hit ENTER to quit):';
+	    read -e -i "$prevCommand" command;
+	    if [[ -z "$command" ]] || [[ "$command" =~ :$ ]]; then
 		clear;
 		echo 'Command aborted. You returned to navigation menu';
 	    else
