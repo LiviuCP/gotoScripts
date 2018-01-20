@@ -164,8 +164,11 @@ You can:
 - enter the history/favorites menus
   - enter keyword :h for history
   - enter keyword :f for favorites
-- run any other commands that you would enter when not in navigation mode: mkdir, ls, pwd, script aliases etc.
+- run any other command that you would enter when not in navigation mode: mkdir, ls, pwd, script aliases etc.
   - enter keyword : and hit ENTER (command mode is entered)
+- run any other command by editing the text of the last successful command
+  - enter keyword ::
+  - this option is only available for BASH 4 (locked for BASH 3, an error message will be output)
 - run the last command which had been successfully executed (when using option ':')
   - enter keyword :cmd and hit ENTER
 - show the last command which had been successfully executed (when using option ':')
