@@ -649,7 +649,7 @@ function removeFromFavorites {
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
-    # stores previously executed command (if any)
+    # stores last successfully executed shell command (if any)
     prevCommand='';
     clear;
     echo 'Welcome to navigation mode!';
@@ -659,7 +659,7 @@ function navigate {
 	echo 'Current directory:';
 	echo `pwd`;
 	echo;
-	echo 'Previous shell command:';
+	echo 'Last successful shell command:';
 	if [[ -z "$prevCommand" ]]; then
 	    echo 'none';
 	else
@@ -680,7 +680,7 @@ function navigate {
 		helpMenu="$helpMenu"'echo;';
 		helpMenu="$helpMenu"'echo ":     -  enter a shell command";';
 		helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
-		helpMenu="$helpMenu"'echo ":cmd  -  repeat previous shell command";';
+		helpMenu="$helpMenu"'echo ":cmd  -  repeat last successful shell command";';
 		helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
 		helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
 		helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
@@ -703,8 +703,6 @@ function navigate {
 		eval "$command";
 	        if [[ $? == 0 ]]; then
 		    prevCommand=$command;
-		else
-		    prevCommand='';
 		fi
 	    fi
 	    ;;
@@ -727,14 +725,12 @@ function navigate {
 		eval "$command";
 	        if [[ $? == 0 ]]; then
 		    prevCommand=$command;
-		else
-		    prevCommand='';
 		fi
 	    fi
 	    ;;
 	':cmd')
 	    if [[ -z $prevCommand ]]; then
-		echo 'No command previously executed or previous command ended with errors';
+		echo 'No successful command previously executed';
 	    else
 		eval "$prevCommand";
 	    fi
