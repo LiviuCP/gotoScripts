@@ -686,6 +686,9 @@ function navigate {
 		helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
 		helpMenu="$helpMenu"'echo ":f    -  enter favorites menu";';
 		helpMenu="$helpMenu"'echo ":p    -  go to the previously visited directory";';
+		helpMenu="$helpMenu"'echo ":m    -  select items to be moved to another directory (interactive mode only)";';
+		helpMenu="$helpMenu"'echo ":c    -  select items to be copied to another directory (interactive mode only)";';
+		helpMenu="$helpMenu"'echo ":pst  -  move or copy the selected items to the current directory (interactive mode only)";';
 		helpMenu="$helpMenu"'echo;';
 		helpMenu="$helpMenu"'echo "Press q to exit";';
 		helpMenu="$helpMenu"'echo;';
@@ -749,6 +752,15 @@ function navigate {
 	    ;;
 	':p')
 	    goToPrevDir;
+	    ;;
+	':m')
+	    clipboard --move;
+	    ;;
+	':c')
+	    clipboard --copy;
+	    ;;
+	':pst')
+	    paste;
 	    ;;
 	':q')
 	    echo 'You exited navigation mode.';
