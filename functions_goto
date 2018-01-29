@@ -120,7 +120,6 @@ function goToDir {
     echo "Previous directory: $prevDir";
     echo "Opened directory: $currentDir";
     if [[ $currentDir == $prevDir ]]; then
-	echo 'The current directory remains unchanged!';
 	open -a terminal;
 	return 0;
     fi
