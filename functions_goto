@@ -656,10 +656,15 @@ function navigate {
     while [[ '1' == '1' ]]; do
 	echo;
 	echo '**************************************************'
-	echo;
 	echo 'Current directory:';
-	echo;
 	echo `pwd`;
+	echo;
+	echo 'Previous shell command:';
+	if [[ -z "$prevCommand" ]]; then
+	    echo 'none';
+	else
+	    echo "$prevCommand";
+	fi
 	echo;
 	echo 'Enter a command or the path of the directory you want to visit.';
 	echo 'Press ENTER to return to home directory.'
@@ -676,7 +681,6 @@ function navigate {
 		helpMenu="$helpMenu"'echo ":     -  enter a shell command";';
 		helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 		helpMenu="$helpMenu"'echo ":cmd  -  repeat previous shell command";';
-		helpMenu="$helpMenu"'echo ":scmd -  show previous shell command";';
 		helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
 		helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
 		helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
@@ -736,15 +740,6 @@ function navigate {
 		echo 'No command previously executed or previous command ended with errors';
 	    else
 		eval "$prevCommand";
-	    fi
-	    ;;
-	':scmd')
-	    if [[ -z $prevCommand ]]; then
-		echo 'No command previously executed or previous command ended with errors';
-	    else
-		echo 'Previously executed command is: ';
-		echo;
-		echo "$prevCommand";
 	    fi
 	    ;;
 	':h')
