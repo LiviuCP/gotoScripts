@@ -171,8 +171,6 @@ You can:
   - this option is only available for BASH 4 (locked for BASH 3, an error message will be output)
 - run the last command which had been successfully executed (when using option ':')
   - enter keyword :cmd and hit ENTER
-- show the last command which had been successfully executed (when using option ':')
-  - enter keyword :scmd and hit ENTER
 - use the move, copy and paste functionality
   - enter keyword :m for move
   - enter keyword :c for copy
