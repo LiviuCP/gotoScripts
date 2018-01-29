@@ -708,7 +708,11 @@ function navigate {
 	    fi
 	    ;;
 	'::')
-	    echo 'Enter the required command based on previous command';
+	    if [[ -z "$prevCommand" ]]; then
+	        echo 'No previous command successfully executed. Enter a new command';
+	    else
+	        echo 'Enter the required command based on the last successful command';
+	    fi
 	    echo '(press : and hit ENTER to quit):';
 	    read -e -i "$prevCommand" command;
 	    if [[ $? != 0 ]]; then
