@@ -81,7 +81,6 @@ function goToDir {
     echo "Previous directory: $prevDir";
     echo "Opened directory: $currentDir";
     if [[ $currentDir == $prevDir ]]; then
-	open -a terminal;
 	return 0;
     fi
     nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
