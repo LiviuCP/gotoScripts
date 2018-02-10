@@ -238,7 +238,7 @@ function goToMenu {
 	echo;
 	echo 'Enter the number of the directory you want to navigate to.';
 	if [[ -s "$fav_file" ]]; then
-	    echo 'Enter t or T to toggle to the favorite directories menu.';
+	    echo 'Press ENTER to toggle to the favorite directories menu.';
 	fi
 	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
 	echo 'Enter q or Q to quit.';
@@ -254,7 +254,7 @@ function goToMenu {
 	echo;
 	echo 'Enter the number of the directory you want to navigate to.';
 	if [[ -s "$hist_file" ]]; then
-	    echo 'Enter t or T to toggle to the navigation history menu.';
+	    echo 'Press ENTER to toggle to the navigation history menu.';
 	fi
 	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
 	echo 'Enter q or Q to quit.';
@@ -457,7 +457,7 @@ function goToMenu {
 	    unset -f unsetHelpers;
 	    return 0;
 	# toggle to the other menu if the user chooses so
-	elif [[ $dirNr == 't' ]] || [[ $dirNr == 'T' ]]; then
+	elif [[ -z "$dirNr" ]]; then
 	    if [[ "$1" == '-f' ]]; then
 		if [[ ! -s "$hist_file" ]]; then
 		    eval "$display";
