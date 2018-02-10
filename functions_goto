@@ -112,14 +112,7 @@ function goToDir {
     # - if not: go to next step
     grep -x "$currentDir" "$w_log_file" > /dev/null;
     if [[ $? == 0 ]]; then
-<<<<<<< HEAD
-	cat "$r_hist_file" > "$hist_file";
-	head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-=======
 	consolidateHistory;
-	# no matter how the function works the terminal must remain the active window after the script finishes execution
-	open -a terminal;
->>>>>>> master
 	return 0;
     else
 	echo "$currentDir" >> "$w_log_file";
@@ -159,14 +152,7 @@ function goToDir {
     fi
     #
     # consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
-<<<<<<< HEAD
-    cat "$r_hist_file" > "$hist_file";
-    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
-=======
     consolidateHistory;
-    # no matter how the function works the terminal must remain the active window after the script finishes execution
-    open -a terminal;
->>>>>>> master
 }
 #
 # ******************************************************************************************************************
