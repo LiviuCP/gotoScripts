@@ -25,6 +25,13 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 #
 # GLOBAL FUNCTIONS
 #
+# This is a helper function shared by more of the below global functions (its purpose is to consolidate the persistent and recent history into a single file in a useful manner)
+#
+function consolidateHistory {
+    cat "$r_hist_file" > "$hist_file";
+    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+}
+#
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
@@ -145,8 +152,7 @@ function goToDir {
     # - if not: go to next step
     grep -x "$currentDir" "$w_log_file" > /dev/null;
     if [[ $? == 0 ]]; then
-	cat "$r_hist_file" > "$hist_file";
-	head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	consolidateHistory;
 	# no matter how the function works the terminal must remain the active window after the script finishes execution
 	open -a terminal;
 	return 0;
@@ -188,8 +194,7 @@ function goToDir {
     fi
     #
     # consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
-    cat "$r_hist_file" > "$hist_file";
-    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+    consolidateHistory;
     # no matter how the function works the terminal must remain the active window after the script finishes execution
     open -a terminal;
 }
@@ -290,8 +295,7 @@ function goToMenu {
 		grep -xv "$dirPath" "$fav_file" > "$temp_file";
 		mv "$temp_file" "$fav_file";
 		# history should be consolidated again
-		cat "$r_hist_file" > "$hist_file";
-		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+		consolidateHistory;
 		# confirm removal has been successfully performed
 		echo "Entry $dirPath has been removed from the menus.";
 		return 0;
@@ -386,8 +390,7 @@ function goToMenu {
 		    fi
 		fi
 		# history should be consolidated again
-		cat "$r_hist_file" > "$hist_file";
-		head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+		consolidateHistory;
 		# confirm mapping has been successfully performed
 		echo "Missing directory: $dirPath";
 		echo "Replacing directory: $replacingDir";
@@ -574,8 +577,7 @@ function addToFavorites {
 	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
 	    rm "$temp_file";
 	    # history should be consolidated again
-	    cat "$r_hist_file" > "$hist_file";
-	    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	    consolidateHistory;
 	    # update excluded history file
 	    echo $entryToExclude >> "$e_hist_file";
 	else
@@ -675,8 +677,7 @@ function removeFromFavorites {
 	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	mv "$temp_file" "$p_hist_file";
 	# history should be consolidated again
-	cat "$r_hist_file" > "$hist_file";
-	head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
+	consolidateHistory;
     fi
     #
     # Step 5: delete the entry
@@ -813,6 +814,7 @@ function navigate {
 # These functions are only helper functions that are used by the global functions in order to perform specific operations
 # Direct access from user side might cause unexpected behavior
 # In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
+# The exception is the consolidateHistory function which cannot be disabled as it is used by multiple global functions and is declared outside them
 #
 unset -f formatFileContent;
 unset -f displayHistory;
