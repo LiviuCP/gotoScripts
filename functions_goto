@@ -389,7 +389,7 @@ function goToMenu {
 	unset -f handleMissingDirectory;
     }
     #
-    # Step 0: choose the file to be used for navigating, check if it is empty, then display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
+    # Step 0: choose the file to be used for navigating, check if it is empty, (if not) display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
     if [[ "$1" == '-f' ]]; then
 	input_file="$fav_file";
 	display='displayFavorites';
