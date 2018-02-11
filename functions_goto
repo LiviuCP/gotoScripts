@@ -240,8 +240,8 @@ function goToMenu {
 	if [[ -s "$fav_file" ]]; then
 	    echo 'Press ENTER to toggle to the favorite directories menu.';
 	fi
-	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
-	echo 'Enter q or Q to quit.';
+	echo 'Enter :cMenu (case-sensitive) to clear the navigation history menu.';
+	echo 'Enter :q to quit.';
 	echo;
     }
     #displays the favorites menu in a different (tailor-made) manner from the history menu
@@ -256,8 +256,8 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Press ENTER to toggle to the navigation history menu.';
 	fi
-	echo 'Enter cMenu (case-sensitive) to clear the navigation history menu.';
-	echo 'Enter q or Q to quit.';
+	echo 'Enter :cMenu (case-sensitive) to clear the navigation history menu.';
+	echo 'Enter :q to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
@@ -270,13 +270,13 @@ function goToMenu {
 	while [[ '1' == '1' ]]; do
 	    echo;
 	    echo 'Please choose the required action: ';
-	    echo 'r or R: remove the directory from the menus';
-	    echo 'm or M: map to an existing directory';
-	    echo 'q or Q: quit';
+	    echo ':r to remove the directory from the menus';
+	    echo ':m to map to an existing directory';
+	    echo ':q to quit';
 	    echo;
 	    read userChoice;
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
-	    if [[ $userChoice == 'r' ]] || [[ $userChoice == 'R' ]]; then
+	    if [[ $userChoice == ':r' ]]; then
 		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
 		if [[ -f "$w_log_file" ]]; then
 		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
@@ -300,7 +300,7 @@ function goToMenu {
 		echo "Entry $dirPath has been removed from the menus.";
 		return 0;
 	    # user chooses to replace the directory entry with another (existing) path
-	    elif [[ $userChoice == 'm' ]] || [[ $userChoice == 'M' ]]; then
+	    elif [[ $userChoice == ':m' ]]; then
 		clear;
 		echo 'Enter the name of the replacing directory: ';
 		read replacingDir;
@@ -396,7 +396,7 @@ function goToMenu {
 		echo "Replacing directory: $replacingDir";
 		echo 'Mapping performed successfully.';
 		return 0;
-	    elif [[ $userChoice == 'q' ]] || [[ $userChoice == 'Q' ]]; then
+	    elif [[ $userChoice == ':q' ]]; then
 		clear;
 		echo "You exited the $menuType menu.";
 		return 0;
@@ -450,7 +450,7 @@ function goToMenu {
 	   [[ $dirNr -le $currentNumberOfEntries ]]; then
 	    break;
 	# user chooses to quit the function
-	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
+	elif [[ $dirNr == ':q' ]]; then
 	    clear;
 	    echo "You exited the $menuType menu.";
 	    unsetHelpers 2> /dev/null;
@@ -486,7 +486,7 @@ function goToMenu {
 		fi
 	    fi
 	# clear history (persistent, recent, excluded) if the user chooses to
-	elif [[ $dirNr == 'cMenu' ]]; then
+	elif [[ $dirNr == ':cMenu' ]]; then
 	    > "$hist_file";
 	    > "$r_hist_file";
 	    > "$p_hist_file";
