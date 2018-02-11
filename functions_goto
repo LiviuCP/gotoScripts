@@ -21,6 +21,7 @@ aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first
 #
 rHistMaxRows=5; #maximum number of entries allowed in the recent history file
 pHistMaxRows=20; #maximum number of entries allowed in the persistent history file
+maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 #
@@ -711,10 +712,17 @@ function navigate {
     clear;
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
+	# get number of items from current directory
+	ls | head -"$maxNrOfItems" > "$temp_file";
 	echo;
 	echo '**************************************************'
 	echo 'Current directory:';
 	echo `pwd`;
+	echo;
+	echo "Directory content (maximum $maxNrOfItems items):";
+	echo;
+	column "$temp_file";
+	rm "$temp_file";
 	echo;
 	echo 'Last successful shell command:';
 	if [[ -z "$prevCommand" ]]; then
