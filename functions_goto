@@ -32,6 +32,30 @@ function consolidateHistory {
     head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' >> "$hist_file";
 }
 #
+# This function is only run once (when this file is loaded) and prepares the environment for usage
+#
+function init {
+    # create the required history and favorites files if they don't already exist
+    touch "$r_hist_file";
+    touch "$p_hist_file";
+    touch "$e_hist_file";
+    touch "$fav_file";
+    # ensure the recent history file has the maximum allowed number of entries
+    head -"$rHistMaxRows" "$r_hist_file" > "$temp_file";
+    mv "$temp_file" "$r_hist_file";
+    # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
+    consolidateHistory;
+    # create log directory if not already existent
+    if [[ ! -d "$logDir" ]]; then
+	mkdir "$logDir";
+    fi
+    # ensure the log file for the current day exists; this file tracks all visited directories for the day and ensure they are not added to persistent history more than once
+    w_log_file="$logDir"/`date +"%Y%m%d"`;
+    touch "$w_log_file";
+}
+init;
+unset -f init;
+#
 # This function closes all existing Finder windows and opens a new finder window with the directory mentioned in the first argument; any other arguments are ignored
 # The argument can be a relative or an absolute path
 # The function returns value 0 for successful execution and 1 in any other situation
@@ -42,7 +66,7 @@ function goToDir {
     delayAfterReopen=0.3; #number of seconds of delay after re-opening the Finder window
     delayErrorReopen=1.5; #number of seconds of delay when an error occurs at Finder re-opening
     #
-    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory); check if the history files exist; check if the log directory and the working log file exist
+    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
     if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
 	if [[ -e $1 ]]; then
 	    echo "$1 is not a directory.";
@@ -52,23 +76,6 @@ function goToDir {
 	echo 'Either is the name invalid (please check spelling) or the directory has been deleted.';
 	return 1;  
     fi
-    # create the history files if they don't already exist
-    if [[ ! -f "$r_hist_file" ]]; then
-	> "$r_hist_file";
-    fi
-    if [[ ! -f "$p_hist_file" ]]; then
-	> "$p_hist_file";
-    fi
-    if [[ ! -f "$e_hist_file" ]]; then
-	> "$e_hist_file";
-    fi
-    # create log directory if not already existent
-    if [[ ! -d "$logDir" ]]; then
-	mkdir "$logDir";
-    fi
-    # ensure the log file for the current day exists; this file tracks all visited directories for the day and ensure they are not added to persistent history more than once
-    w_log_file="$logDir"/`date +"%Y%m%d"`;
-    touch "$w_log_file";
     #
     # Step 2: memorize current directory and cd to the new directory (if no argument had been entered, cd to the user home directory)
     prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
@@ -426,8 +433,7 @@ function goToMenu {
 	display='displayHistory';
 	menuType='history';
     fi
-    # ensure the file exists (even if empty) to prevent any bugs
-    touch "$input_file";
+    #
     if [[ ! -s "$input_file" ]]; then
 	echo "There are no entries in the $menuType menu.";
 	unsetHelpers 2> /dev/null;
