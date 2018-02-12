@@ -247,7 +247,7 @@ function goToMenu {
 	    echo ':m to map to an existing directory';
 	    echo ':q to quit';
 	    echo;
-	    read userChoice;
+	    read -e userChoice;
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
 	    if [[ $userChoice == ':r' ]]; then
 		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
@@ -276,7 +276,7 @@ function goToMenu {
 	    elif [[ $userChoice == ':m' ]]; then
 		clear;
 		echo 'Enter the name of the replacing directory: ';
-		read replacingDir;
+		read -e replacingDir;
 		# the mapping directory should exist and be a valid directory
 		if [[ ! -d "$replacingDir" ]]; then
 		    echo "Directory $replacingDir does not exist or has been deleted.";
@@ -407,7 +407,7 @@ function goToMenu {
 	return 1;
     fi
     eval "$display";
-    read dirNr;
+    read -e dirNr;
     #
     # Step 1: check the input entered by user. If should be either:
     # - a number between 1 and and the number of entries contained in the file
@@ -436,7 +436,7 @@ function goToMenu {
 		    echo 'Toggling disabled: no entries in the history menu.';
 		    echo 'Please enter one of the valid options listed above.';
 		    echo;
-		    read dirNr;
+		    read -e dirNr;
 		else
 		    goToMenu;
 		    unsetHelpers 2> /dev/null;
@@ -449,7 +449,7 @@ function goToMenu {
 		    echo 'Toggling disabled: no entries in the favorites menu.';
 		    echo 'Please enter one of the valid options listed above.';
 		    echo;
-		    read dirNr;
+		    read -e dirNr;
 		else
 		    goToMenu -f;
 		    unsetHelpers 2> /dev/null;
@@ -482,7 +482,7 @@ function goToMenu {
 	    eval "$display";
 	    echo 'Invalid option! Please try again.';
 	    echo;
-	    read dirNr;
+	    read -e dirNr;
 	fi
     done
     #
@@ -608,7 +608,7 @@ function removeFromFavorites {
 	echo;
     }
     displayFavoritesFile;
-    read dirNr;
+    read -e dirNr;
     #
     # Step 3: check the input entered by user. If should be either:
     # - a number between 1 and and the number of entries contained in the file
@@ -630,7 +630,7 @@ function removeFromFavorites {
 	    displayFavoritesFile;
 	    echo 'Invalid option! Please try again.';
 	    echo;
-	    read dirNr;
+	    read -e dirNr;
 	fi
     done
     #
@@ -692,7 +692,7 @@ function navigate {
 	echo 'Enter :help (case-sensitive) for the list of of available commands.';
 	echo 'Enter :q to quit navigation mode.';
 	echo;
-	read dir_to_visit;
+	read -e dir_to_visit;
 	clear;
 	case $dir_to_visit in
 	':help')
