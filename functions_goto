@@ -619,7 +619,7 @@ function removeFromFavorites {
 	cat -n "$fav_file";
 	echo;
 	echo 'Enter the number of the entry to be removed';
-	echo 'Enter q or Q to quit';
+	echo 'Enter :q to quit';
 	echo;
     }
     displayFavoritesFile;
@@ -636,7 +636,7 @@ function removeFromFavorites {
 	       [[ $dirNr -ge 1                       ]] &&
 	       [[ $dirNr -le $currentNumberOfEntries ]]; then
 	    break;
-	elif [[ $dirNr == 'q' ]] || [[ $dirNr == 'Q' ]]; then
+	elif [[ $dirNr == ':q' ]]; then
 	    clear;
 	    echo 'No entry removed from favorites.';
 	    unset -f displayFavoritesFile;
