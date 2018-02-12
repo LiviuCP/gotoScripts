@@ -677,8 +677,8 @@ function removeFromFavorites {
     while [[ '1' == '1' ]];
     do
 	if [[ $dirNr =~  $nonNegativeInteger     ]] &&
-	       [[ $dirNr -ge 1                       ]] &&
-	       [[ $dirNr -le $currentNumberOfEntries ]]; then
+	   [[ $dirNr -ge 1                       ]] &&
+	   [[ $dirNr -le $currentNumberOfEntries ]]; then
 	    break;
 	elif [[ $dirNr == ':q' ]]; then
 	    clear;
