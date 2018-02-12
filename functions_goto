@@ -37,7 +37,7 @@ function consolidateHistory {
 	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
 	echo "$currentEntryConverted" >> "$aux_temp_file";
     done < "$temp_file"
-    sort "$aux_temp_file" | cut -f 2 -d ':' >> "$hist_file";
+    sort -f "$aux_temp_file" | cut -f 2 -d ':' >> "$hist_file";
     rm "$temp_file";
     rm "$aux_temp_file";
 }
