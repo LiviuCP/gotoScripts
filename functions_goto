@@ -599,12 +599,24 @@ function addToFavorites {
 	    echo "$dirToAdd"';0' >> "$e_hist_file";
 	fi
     }
+    # helper function that sorts the favorites file by taking into account the name of each directory and not the path
+    function sortFavoritesByBaseName {
+	> "$temp_file";
+	while read currentEntry;
+	do
+	    currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
+	    echo "$currentEntryConverted" >> "$temp_file";
+	done < "$fav_file"
+	sort -f "$temp_file" | cut -f 2 -d ':' > "$fav_file";
+	rm "$temp_file";
+    }
     #
-    # finally add the directory to favorites
+    # finally add the directory to favorites and sort the entries by directory name
     if [[  -f "$fav_file" ]]; then
 	grep -x "$dirToAdd" "$fav_file" > /dev/null;
 	if [[ $? != 0 ]]; then
 	    echo $dirToAdd >> "$fav_file";
+	    sortFavoritesByBaseName;
 	    echo "Directory $dirToAdd added to favorites.";
 	    excludeFromPersistentHistory;
 	    unset -f excludeFromPersistentHistory;
@@ -619,6 +631,7 @@ function addToFavorites {
 	echo "Directory $dirToAdd added to favorites.";
 	excludeFromPersistentHistory;
 	unset -f excludeFromPersistentHistory;
+	unset -f sortFavoritesByBaseName;
 	return 0;
     fi
 }
@@ -843,6 +856,7 @@ unset -f displayFavorites;
 unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
+unset -f sortFavoritesByBaseName;
 #
 #
 #
