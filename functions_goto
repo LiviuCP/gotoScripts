@@ -30,7 +30,16 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 # This is a helper function shared by more of the below global functions (its purpose is to consolidate the persistent and recent history into a single file in a useful manner)
 #
 function consolidateHistory {
-    cat "$r_hist_file" > "$hist_file";
+    # first sort the recent history file by name of each directory (not path) and add it to consolidated history
+    > "$temp_file";
+    while read currentEntry;
+    do
+	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
+	echo "$currentEntryConverted" >> "$temp_file";
+    done < "$r_hist_file"
+    sort -f "$temp_file" | cut -f 2 -d ':' > "$hist_file";
+    rm "$temp_file";
+    # do the same for persistent history and append it to consolidated history
     head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' > "$temp_file";
     while read currentEntry;
     do
