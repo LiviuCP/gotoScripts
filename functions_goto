@@ -800,18 +800,20 @@ function navigate {
 	        echo 'Enter the required command based on the last successful command';
 	    fi
 	    echo '(press : and hit ENTER to quit):';
-	    read -e -i "$prevCommand" command;
+	    read -e -i "$prevCommand" commandToExecute;
 	    if [[ $? != 0 ]]; then
 		clear;
 		echo 'This command is only available in BASH 4';
 		echo 'Please install the appropriate BASH version';
-	    elif [[ -z "$command" ]] || [[ "$command" =~ :$ ]]; then
+	    elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
 		clear;
 		echo 'Command aborted. You returned to navigation menu';
 	    else
-		eval "$command";
+		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
+		cachedCommand="$commandToExecute";
+		eval "$commandToExecute";
 	        if [[ $? == 0 ]]; then
-		    prevCommand=$command;
+		    prevCommand="$cachedCommand";
 		fi
 	    fi
 	    ;;
@@ -837,10 +839,12 @@ function navigate {
 	*)
 	    # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
 	    if [[ ${dir_to_visit:0:1} == ':' ]]; then
-		command=${dir_to_visit:1};
-		eval "$command";
+		commandToExecute=${dir_to_visit:1};
+		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
+		cachedCommand="$commandToExecute";
+		eval "$commandToExecute";
 		if [[ $? == 0 ]]; then
-		    prevCommand=$command;
+		    prevCommand="$cachedCommand";
 		fi
 	    else
 		goToDir `echo "$dir_to_visit"`;
