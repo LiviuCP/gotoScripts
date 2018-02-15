@@ -723,7 +723,7 @@ function navigate {
 	    helpMenu='';
 	    helpMenu="$helpMenu"'echo "Navigation commands";';
 	    helpMenu="$helpMenu"'echo;';
-	    helpMenu="$helpMenu"'echo "For executing any shell command please enter : followed by the command string";';
+	    helpMenu="$helpMenu"'echo "For executing any shell command please enter : followed by the command string.";';
 	    helpMenu="$helpMenu"'echo "For example enter :ls -l to list the contents of the current directory in detail.";';
 	    helpMenu="$helpMenu"'echo;';
 	    helpMenu="$helpMenu"'echo;';
