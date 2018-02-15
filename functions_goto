@@ -739,14 +739,19 @@ function navigate {
 	# get number of items from current directory
 	ls | head -"$maxNrOfItems" > "$temp_file";
 	echo;
-	echo '**************************************************'
+	echo '****************************************************************************************************';
+	echo;
 	echo 'Current directory:';
 	echo `pwd`;
 	echo;
-	echo "Directory content (maximum $maxNrOfItems items):";
+	echo '----------------------------------------------------------------------------------------------------';
+	echo;
+	echo "Directory content (maximum $maxNrOfItems items displayed):";
 	echo;
 	column "$temp_file";
 	rm "$temp_file";
+	echo;
+	echo '----------------------------------------------------------------------------------------------------';
 	echo;
 	echo 'Last successful shell command:';
 	if [[ -z "$prevCommand" ]]; then
@@ -755,10 +760,10 @@ function navigate {
 	    echo "$prevCommand";
 	fi
 	echo;
-	echo 'Enter a command or the path of the directory you want to visit.';
-	echo 'Press ENTER to return to home directory.'
-	echo 'Enter :help (case-sensitive) for the list of of available commands.';
-	echo 'Enter :q to quit navigation mode.';
+	echo '****************************************************************************************************';
+	echo;
+	echo 'Enter the path of the directory you want to visit (press ENTER to return to the home dir).';
+	echo 'Enter :help (case-sensitive) for the list of of available commands or :q to quit navigation mode.';
 	echo;
 	read -e dir_to_visit;
 	clear;
