@@ -723,7 +723,12 @@ function navigate {
 	    helpMenu='';
 	    helpMenu="$helpMenu"'echo "Navigation commands";';
 	    helpMenu="$helpMenu"'echo;';
-	    helpMenu="$helpMenu"'echo ":     -  enter a shell command";';
+	    helpMenu="$helpMenu"'echo "For executing any shell command please enter : followed by the command string";';
+	    helpMenu="$helpMenu"'echo "For example enter :ls -l to list the contents of the current directory in detail.";';
+	    helpMenu="$helpMenu"'echo;';
+	    helpMenu="$helpMenu"'echo;';
+	    helpMenu="$helpMenu"'echo "Other useful navigation options: ";';
+	    helpMenu="$helpMenu"'echo;';
 	    helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 	    helpMenu="$helpMenu"'echo ":cmd  -  repeat last successful shell command";';
 	    helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
@@ -736,20 +741,6 @@ function navigate {
 	    helpMenu="$helpMenu"'echo;';
 	    eval "$helpMenu" | less;
 	    echo 'You exited navigation help menu';
-	    ;;
-	':')
-	    echo 'Enter the required command';
-	    echo '(press : and hit ENTER to quit):';
-	    read -e command;
-	    if [[ -z "$command" ]] || [[ "$command" =~ :$ ]]; then
-		clear;
-		echo 'Command aborted. You returned to navigation menu';
-	    else
-		eval "$command";
-	        if [[ $? == 0 ]]; then
-		    prevCommand=$command;
-		fi
-	    fi
 	    ;;
 	'::')
 	    if [[ -z "$prevCommand" ]]; then
@@ -800,7 +791,16 @@ function navigate {
 	    return 0;
 	    ;;
 	*)
-	    goToDir `echo "$dir_to_visit"`;
+	    # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
+	    if [[ ${dir_to_visit:0:1} == ':' ]]; then
+		command=${dir_to_visit:1};
+		eval "$command";
+		if [[ $? == 0 ]]; then
+		    prevCommand=$command;
+		fi
+	    else
+		goToDir `echo "$dir_to_visit"`;
+	    fi
 	    ;;
 	esac
     done
