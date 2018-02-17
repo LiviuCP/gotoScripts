@@ -693,7 +693,10 @@ function navigate {
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
 	# get number of items from current directory
-	ls | head -"$maxNrOfItems" > "$temp_file";
+	ls -p | tee "$aux_temp_file" | head -"$maxNrOfItems" > "$temp_file";
+	tempOutput=`wc -l "$aux_temp_file"`;
+	nrOfItems=`echo $tempOutput | cut -f 1 -d ' '`;
+	rm "$aux_temp_file";
 	echo;
 	echo '****************************************************************************************************';
 	echo;
@@ -702,9 +705,13 @@ function navigate {
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
-	echo "Directory content (maximum $maxNrOfItems items displayed):";
+	echo "Directory content:";
 	echo;
 	column "$temp_file";
+	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
+	    echo;
+	    echo 'Number of items exceeds the displayed ones! Type :ls -p | less to display all directory items.';
+	fi
 	rm "$temp_file";
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
