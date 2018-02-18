@@ -802,7 +802,18 @@ function navigate {
 	    if [[ -z $prevCommand ]]; then
 		echo 'No successful command previously executed';
 	    else
+		echo "Command is being executed: $prevCommand";
+		echo;
 		eval "$prevCommand";
+		commandStatus=$?;
+		echo;
+		echo -n 'Command finished ';
+		if [[ 0 != $commandStatus ]]; then
+		    echo -n 'with errors!';
+		else
+		    echo -n 'successfully!';
+		fi
+		echo ' Scroll up to check output (if any) if it exceeds the screen.';
 	    fi
 	    ;;
 	'::')
@@ -823,10 +834,19 @@ function navigate {
 	    else
 		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
 		cachedCommand="$commandToExecute";
+		echo "Command is being executed: $commandToExecute";
+		echo;
 		eval "$commandToExecute";
-	        if [[ $? == 0 ]]; then
+		commandStatus=$?;
+		echo;
+		echo -n 'Command finished ';
+		if [[ 0 != $commandStatus ]]; then
+		    echo -n 'with errors!';
+		else
 		    prevCommand="$cachedCommand";
+		    echo -n 'successfully!';
 		fi
+		echo ' Scroll up to check output (if any) if it exceeds the screen.';
 	    fi
 	    ;;
 	':h')
@@ -854,10 +874,19 @@ function navigate {
 		commandToExecute=${dir_to_visit:1};
 		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
 		cachedCommand="$commandToExecute";
+		echo "Command is being executed: $commandToExecute";
+		echo;
 		eval "$commandToExecute";
-		if [[ $? == 0 ]]; then
+		commandStatus=$?;
+		echo;
+		echo -n 'Command finished ';
+		if [[ 0 != $commandStatus ]]; then
+		    echo -n 'with errors!';
+		else
 		    prevCommand="$cachedCommand";
+		    echo -n 'successfully!';
 		fi
+		echo ' Scroll up to check output (if any) if it exceeds the screen.';
 	    else
 		goToDir `echo "$dir_to_visit"`;
 	    fi
