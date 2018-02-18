@@ -687,6 +687,39 @@ function removeFromFavorites {
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
+    # helper function for executing a new shell command (either with new input or based on a previous command)
+    function executeNewCommand {
+	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
+	cachedCommand="$commandToExecute";
+	echo "Command is being executed: $commandToExecute";
+	echo;
+	eval "$commandToExecute";
+	commandStatus=$?;
+	echo;
+	echo -n 'Command finished ';
+	if [[ 0 != $commandStatus ]]; then
+	    echo -n 'with errors!';
+	else
+	    prevCommand="$cachedCommand";
+	    echo -n 'successfully!';
+	fi
+	echo ' Scroll up to check output (if any) if it exceeds the screen.';
+    }
+    # helper function for executing previous shell command again
+    function repeatPrevCommand {
+	echo "Command is being executed: $prevCommand";
+	echo;
+	eval "$prevCommand";
+	commandStatus=$?;
+	echo;
+	echo -n 'Command finished ';
+	if [[ 0 != $commandStatus ]]; then
+	    echo -n 'with errors!';
+	else
+	    echo -n 'successfully!';
+	fi
+	echo ' Scroll up to check output (if any) if it exceeds the screen.';
+    }
     # stores last successfully executed shell command (if any)
     prevCommand='';
     clear;
@@ -758,18 +791,7 @@ function navigate {
 	    if [[ -z $prevCommand ]]; then
 		echo 'No successful command previously executed';
 	    else
-		echo "Command is being executed: $prevCommand";
-		echo;
-		eval "$prevCommand";
-		commandStatus=$?;
-		echo;
-		echo -n 'Command finished ';
-		if [[ 0 != $commandStatus ]]; then
-		    echo -n 'with errors!';
-		else
-		    echo -n 'successfully!';
-		fi
-		echo ' Scroll up to check output (if any) if it exceeds the screen.';
+		repeatPrevCommand;
 	    fi
 	    ;;
 	'::')
@@ -788,21 +810,7 @@ function navigate {
 		clear;
 		echo 'Command aborted. You returned to navigation menu';
 	    else
-		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
-		cachedCommand="$commandToExecute";
-		echo "Command is being executed: $commandToExecute";
-		echo;
-		eval "$commandToExecute";
-		commandStatus=$?;
-		echo;
-		echo -n 'Command finished ';
-		if [[ 0 != $commandStatus ]]; then
-		    echo -n 'with errors!';
-		else
-		    prevCommand="$cachedCommand";
-		    echo -n 'successfully!';
-		fi
-		echo ' Scroll up to check output (if any) if it exceeds the screen.';
+		executeNewCommand;
 	    fi
 	    ;;
 	':h')
@@ -822,27 +830,15 @@ function navigate {
 	    ;;
 	':q')
 	    echo 'You exited navigation mode.';
+	    unset -f executeNewCommand;
+	    unset -f repeatPrevCommand;
 	    return 0;
 	    ;;
 	*)
 	    # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
 	    if [[ ${dir_to_visit:0:1} == ':' ]]; then
 		commandToExecute=${dir_to_visit:1};
-		# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
-		cachedCommand="$commandToExecute";
-		echo "Command is being executed: $commandToExecute";
-		echo;
-		eval "$commandToExecute";
-		commandStatus=$?;
-		echo;
-		echo -n 'Command finished ';
-		if [[ 0 != $commandStatus ]]; then
-		    echo -n 'with errors!';
-		else
-		    prevCommand="$cachedCommand";
-		    echo -n 'successfully!';
-		fi
-		echo ' Scroll up to check output (if any) if it exceeds the screen.';
+		executeNewCommand;
 	    else
 		goToDir `echo "$dir_to_visit"`;
 	    fi
@@ -869,6 +865,8 @@ unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
 unset -f sortFavoritesByBaseName;
+unset -f executeNewCommand;
+unset -f repeatPrevCommand;
 #
 #
 #
