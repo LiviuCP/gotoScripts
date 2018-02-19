@@ -19,8 +19,8 @@ format_file=$scriptDir/.goto_format; #file used for formatting output (either th
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
 #
-rHistMaxRows=5; #maximum number of entries allowed in the recent history file
-pHistMaxRows=20; #maximum number of entries allowed in the persistent history file
+rHistMaxRows=10; #maximum number of entries allowed in the recent history file
+pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
