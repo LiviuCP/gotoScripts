@@ -738,7 +738,7 @@ function navigate {
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
-	echo "Directory content:";
+	echo "Directory content (hidden items are excluded):";
 	echo;
 	column "$temp_file";
 	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
