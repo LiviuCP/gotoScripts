@@ -764,12 +764,8 @@ function navigate {
 	fi
 	echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
     }
-    # stores last executed shell command (if any) and its result
-    prevCommand='';
-    commandResult='';
-    clear;
-    echo 'Welcome to navigation mode!';
-    while [[ '1' == '1' ]]; do
+    # helper function used for displaying the content of the current directory
+    function displayCurrentDirContent {
 	# get number of items from current directory
 	ls | tee "$aux_temp_file" | head -"$maxNrOfItems" > "$temp_file";
 	tempOutput=`wc -l "$aux_temp_file"`;
@@ -794,6 +790,19 @@ function navigate {
 	    fi
 	done < "$temp_file"
 	rm "$temp_file";
+	column "$aux_temp_file";
+	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
+	    echo;
+	    echo 'Number of items exceeds the displayed ones! Type :ls -p | less to display all directory items.';
+	fi
+	rm "$aux_temp_file";
+    }
+    # stores last executed shell command (if any) and its result
+    prevCommand='';
+    commandResult='';
+    clear;
+    echo 'Welcome to navigation mode!';
+    while [[ '1' == '1' ]]; do
 	echo;
 	echo '****************************************************************************************************';
 	echo;
@@ -804,12 +813,7 @@ function navigate {
 	echo;
 	echo "Directory content (hidden items are excluded):";
 	echo;
-	column "$aux_temp_file";
-	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
-	    echo;
-	    echo 'Number of items exceeds the displayed ones! Type :ls -p | less to display all directory items.';
-	fi
-	rm "$aux_temp_file";
+	displayCurrentDirContent;
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
@@ -898,6 +902,7 @@ function navigate {
 	    echo 'You exited navigation mode.';
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
+	    unset -f displayCurrentDirContent;
 	    return 0;
 	    ;;
 	*)
@@ -933,6 +938,7 @@ unset -f displayFavoritesFile;
 unset -f sortFavoritesByBaseName;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
+unset -f displayCurrentDirContent;
 #
 #
 #
