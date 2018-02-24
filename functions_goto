@@ -781,6 +781,16 @@ function navigate {
 	eval "$helpMenu" | less;
 	echo 'You exited navigation help menu';
     }
+    # helper function for handling general input (new commands or directories to navigate to)
+    function handleGeneralInput {
+	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
+	if [[ ${dir_to_visit:0:1} == ':' ]]; then
+	    commandToExecute=${dir_to_visit:1};
+	    executeNewCommand;
+	else
+	    goToDir `echo "$dir_to_visit"`;
+	fi
+    }
     # stores last executed shell command (if any) and its result
     prevCommand='';
     commandResult='';
@@ -864,16 +874,11 @@ function navigate {
 	    unset -f repeatPrevCommand;
 	    unset -f displayCurrentDirContent;
 	    unset -f displayHelp;
+	    unset -f handleGeneralInput;
 	    return 0;
 	    ;;
 	*)
-	    # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
-	    if [[ ${dir_to_visit:0:1} == ':' ]]; then
-		commandToExecute=${dir_to_visit:1};
-		executeNewCommand;
-	    else
-		goToDir `echo "$dir_to_visit"`;
-	    fi
+	    handleGeneralInput;
 	    ;;
 	esac
     done
@@ -901,6 +906,7 @@ unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f displayCurrentDirContent;
 unset -f displayHelp;
+unset -f handleGeneralInput;
 #
 #
 #
