@@ -855,12 +855,8 @@ function navigate {
 	    executeNewCommand;
 	fi
     }
-    # stores last executed shell command (if any) and its result
-    prevCommand='';
-    commandResult='';
-    clear;
-    echo 'Welcome to navigation mode!';
-    while [[ '1' == '1' ]]; do
+    # helper function used for displaying the "home screen" of the navigation function
+    function displayGeneralNavigationOutput {
 	echo;
 	echo '****************************************************************************************************';
 	echo;
@@ -889,6 +885,14 @@ function navigate {
 	echo 'Enter the path of the directory you want to visit (press ENTER to return to the home dir).';
 	echo 'Enter ? for the list of of available commands or :q to quit navigation mode.';
 	echo;
+    }
+    # stores last executed shell command (if any) and its result
+    prevCommand='';
+    commandResult='';
+    clear;
+    echo 'Welcome to navigation mode!';
+    while [[ '1' == '1' ]]; do
+	displayGeneralNavigationOutput;
 	read -e dir_to_visit;
 	clear;
 	case $dir_to_visit in
@@ -924,6 +928,7 @@ function navigate {
 	    unset -f displayHelp;
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
+	    unset -f displayGeneralNavigationOutput;
 	    return 0;
 	    ;;
 	*)
@@ -957,6 +962,7 @@ unset -f displayCurrentDirContent;
 unset -f displayHelp;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
+unset -f displayGeneralNavigationOutput;
 #
 #
 #
