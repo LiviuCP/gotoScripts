@@ -22,6 +22,7 @@ aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first
 rHistMaxRows=10; #maximum number of entries allowed in the recent history file
 pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
+maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 #
@@ -726,10 +727,29 @@ function navigate {
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
 	# get number of items from current directory
-	ls -p | tee "$aux_temp_file" | head -"$maxNrOfItems" > "$temp_file";
+	ls | tee "$aux_temp_file" | head -"$maxNrOfItems" > "$temp_file";
 	tempOutput=`wc -l "$aux_temp_file"`;
 	nrOfItems=`echo $tempOutput | cut -f 1 -d ' '`;
-	rm "$aux_temp_file";
+	> "$aux_temp_file";
+	# limit the number of characters displayed for each item so current directory content is correctly displayed
+	# (otherwise the content might be too much expanded)
+	while read currentEntry;
+	do
+	    if [[ ${#currentEntry} -gt $maxNrOfChars ]]; then
+		if [[ -d "$currentEntry" ]]; then
+		    echo "${currentEntry:0:$maxNrOfChars}../" >> "$aux_temp_file";
+		else
+		    echo "${currentEntry:0:$maxNrOfChars}..." >> "$aux_temp_file";
+		fi
+	    else
+		if [[ -d "$currentEntry" ]]; then
+		    echo "$currentEntry"'/' >> "$aux_temp_file";
+		else
+		    echo "$currentEntry" >> "$aux_temp_file";
+		fi
+	    fi
+	done < "$temp_file"
+	rm "$temp_file";
 	echo;
 	echo '****************************************************************************************************';
 	echo;
@@ -740,12 +760,12 @@ function navigate {
 	echo;
 	echo "Directory content (hidden items are excluded):";
 	echo;
-	column "$temp_file";
+	column "$aux_temp_file";
 	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
 	    echo;
 	    echo 'Number of items exceeds the displayed ones! Type :ls -p | less to display all directory items.';
 	fi
-	rm "$temp_file";
+	rm "$aux_temp_file";
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
