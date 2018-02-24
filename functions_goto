@@ -690,20 +690,19 @@ function navigate {
     # helper function for executing a new shell command (either with new input or based on a previous command)
     function executeNewCommand {
 	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
-	cachedCommand="$commandToExecute";
+	prevCommand="$commandToExecute";
 	echo "Command is being executed: $commandToExecute";
 	echo '--------------------------';
 	eval "$commandToExecute";
 	commandStatus=$?;
 	echo '--------------------------';
-	echo -n 'Command finished ';
+	echo -n 'Command ';
 	if [[ 0 != $commandStatus ]]; then
-	    echo -n 'with errors!';
+	    commandResult='finished with errors';
 	else
-	    prevCommand="$cachedCommand";
-	    echo -n 'successfully!';
+	    commandResult='finished successfully';
 	fi
-	echo ' Scroll up to check output (if any) if it exceeds the screen.';
+	echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
     }
     # helper function for executing previous shell command again
     function repeatPrevCommand {
@@ -712,16 +711,17 @@ function navigate {
 	eval "$prevCommand";
 	commandStatus=$?;
 	echo '--------------------------';
-	echo -n 'Command finished ';
+	echo -n 'Command ';
 	if [[ 0 != $commandStatus ]]; then
-	    echo -n 'with errors!';
+	    commandResult='finished with errors';
 	else
-	    echo -n 'successfully!';
+	    commandResult='finished successfully';
 	fi
-	echo ' Scroll up to check output (if any) if it exceeds the screen.';
+	echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
     }
-    # stores last successfully executed shell command (if any)
+    # stores last executed shell command (if any) and its result
     prevCommand='';
+    commandResult='';
     clear;
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
@@ -749,10 +749,12 @@ function navigate {
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
-	echo 'Last successful shell command:';
+	echo -n "Last executed shell command";
 	if [[ -z "$prevCommand" ]]; then
+	    echo ':';
 	    echo 'none';
 	else
+	    echo " ($commandResult):";
 	    echo "$prevCommand";
 	fi
 	echo;
@@ -789,16 +791,16 @@ function navigate {
 	    ;;
 	':')
 	    if [[ -z $prevCommand ]]; then
-		echo 'No successful command previously executed';
+		echo 'No shell command previously executed';
 	    else
 		repeatPrevCommand;
 	    fi
 	    ;;
 	'::')
 	    if [[ -z "$prevCommand" ]]; then
-	        echo 'No previous command successfully executed. Enter a new command';
+	        echo 'No shell command previously executed. Enter a new command';
 	    else
-	        echo 'Enter the required command based on the last successful command';
+	        echo 'Enter the required shell command based on the last executed command';
 	    fi
 	    echo '(press : and hit ENTER to quit):';
 	    read -e -i "$prevCommand" commandToExecute;
