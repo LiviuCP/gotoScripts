@@ -751,18 +751,22 @@ function navigate {
     }
     # helper function for executing previous shell command again
     function repeatPrevCommand {
-	echo "Command is being executed: $prevCommand";
-	echo '--------------------------';
-	eval "$prevCommand";
-	commandStatus=$?;
-	echo '--------------------------';
-	echo -n 'Command ';
-	if [[ 0 != $commandStatus ]]; then
-	    commandResult='finished with errors';
+	if [[ -z $prevCommand ]]; then
+	    echo 'No shell command previously executed';
 	else
-	    commandResult='finished successfully';
+	    echo "Command is being executed: $prevCommand";
+	    echo '--------------------------';
+	    eval "$prevCommand";
+	    commandStatus=$?;
+	    echo '--------------------------';
+	    echo -n 'Command ';
+	    if [[ 0 != $commandStatus ]]; then
+		commandResult='finished with errors';
+	    else
+		commandResult='finished successfully';
+	    fi
+	    echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
 	fi
-	echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
     }
     # helper function used for displaying the content of the current directory
     function displayCurrentDirContent {
@@ -862,11 +866,7 @@ function navigate {
 	    displayHelp;
 	    ;;
 	':')
-	    if [[ -z $prevCommand ]]; then
-		echo 'No shell command previously executed';
-	    else
-		repeatPrevCommand;
-	    fi
+	    repeatPrevCommand;
 	    ;;
 	'::')
 	    if [[ -z "$prevCommand" ]]; then
