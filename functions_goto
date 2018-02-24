@@ -835,6 +835,26 @@ function navigate {
 	    goToDir `echo "$dir_to_visit"`;
 	fi
     }
+    # helper function for executing a new command based on the string of the previously executed shell command
+    function execCommandBasedOnPrevInput {
+	if [[ -z "$prevCommand" ]]; then
+	    echo 'No shell command previously executed. Enter a new command';
+	else
+	    echo 'Enter the required shell command based on the last executed command';
+	fi
+	echo '(press : and hit ENTER to quit):';
+	read -e -i "$prevCommand" commandToExecute;
+	if [[ $? != 0 ]]; then
+	    clear;
+	    echo 'This command is only available in BASH 4';
+	    echo 'Please install the appropriate BASH version';
+	elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
+	    clear;
+	    echo 'Command aborted. You returned to navigation menu';
+	else
+	    executeNewCommand;
+	fi
+    }
     # stores last executed shell command (if any) and its result
     prevCommand='';
     commandResult='';
@@ -879,23 +899,7 @@ function navigate {
 	    repeatPrevCommand;
 	    ;;
 	'::')
-	    if [[ -z "$prevCommand" ]]; then
-	        echo 'No shell command previously executed. Enter a new command';
-	    else
-	        echo 'Enter the required shell command based on the last executed command';
-	    fi
-	    echo '(press : and hit ENTER to quit):';
-	    read -e -i "$prevCommand" commandToExecute;
-	    if [[ $? != 0 ]]; then
-		clear;
-		echo 'This command is only available in BASH 4';
-		echo 'Please install the appropriate BASH version';
-	    elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
-		clear;
-		echo 'Command aborted. You returned to navigation menu';
-	    else
-		executeNewCommand;
-	    fi
+	    execCommandBasedOnPrevInput;
 	    ;;
 	'<')
 	    goToMenu;
@@ -919,6 +923,7 @@ function navigate {
 	    unset -f displayCurrentDirContent;
 	    unset -f displayHelp;
 	    unset -f handleGeneralInput;
+	    unset -f execCommandBasedOnPrevInput;
 	    return 0;
 	    ;;
 	*)
@@ -950,6 +955,7 @@ unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f displayCurrentDirContent;
 unset -f displayHelp;
+unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 #
 #
