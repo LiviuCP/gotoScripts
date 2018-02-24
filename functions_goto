@@ -761,12 +761,12 @@ function navigate {
 	echo '****************************************************************************************************';
 	echo;
 	echo 'Enter the path of the directory you want to visit (press ENTER to return to the home dir).';
-	echo 'Enter :help (case-sensitive) for the list of of available commands or :q to quit navigation mode.';
+	echo 'Enter ? for the list of of available commands or :q to quit navigation mode.';
 	echo;
 	read -e dir_to_visit;
 	clear;
 	case $dir_to_visit in
-	':help')
+	'?')
 	    helpMenu='';
 	    helpMenu="$helpMenu"'echo "Navigation commands";';
 	    helpMenu="$helpMenu"'echo;';
@@ -778,10 +778,10 @@ function navigate {
 	    helpMenu="$helpMenu"'echo;';
 	    helpMenu="$helpMenu"'echo ":     -  repeat last successful shell command";';
 	    helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
-	    helpMenu="$helpMenu"'echo ":h    -  enter history menu";';
+	    helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	    helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
 	    helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
-	    helpMenu="$helpMenu"'echo ":f    -  enter favorites menu";';
+	    helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	    helpMenu="$helpMenu"'echo ":p    -  go to the previously visited directory";';
 	    helpMenu="$helpMenu"'echo;';
 	    helpMenu="$helpMenu"'echo "Press q to exit";';
@@ -815,10 +815,10 @@ function navigate {
 		executeNewCommand;
 	    fi
 	    ;;
-	':h')
+	'<')
 	    goToMenu;
 	    ;;
-	':f')
+	'>')
 	    goToMenu -f;
 	    ;;
 	':a')
