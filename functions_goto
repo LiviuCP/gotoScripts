@@ -842,15 +842,8 @@ function navigate {
 	echo 'Enter ? for the list of of available commands or :q to quit navigation mode.';
 	echo;
     }
-    # stores last executed shell command (if any) and its result
-    prevCommand='';
-    commandResult='';
-    clear;
-    echo 'Welcome to navigation mode!';
-    while [[ '1' == '1' ]]; do
-	displayGeneralNavigationOutput;
-	read -e dir_to_visit;
-	clear;
+    # helper function that handles all possible options entered by user in navigation mode
+    function handleNavigationOption {
 	case $dir_to_visit in
 	'?')
 	    displayHelp;
@@ -877,6 +870,24 @@ function navigate {
 	    goToPrevDir;
 	    ;;
 	':q')
+	    return 0;
+	    ;;
+	*)
+	    handleGeneralInput;
+	    ;;
+	esac
+    }
+    # stores last executed shell command (if any) and its result
+    prevCommand='';
+    commandResult='';
+    clear;
+    echo 'Welcome to navigation mode!';
+    while [[ '1' == '1' ]]; do
+	displayGeneralNavigationOutput;
+	read -e dir_to_visit;
+	clear;
+	handleNavigationOption;
+	if [[ $dir_to_visit == ':q' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
@@ -885,12 +896,9 @@ function navigate {
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f displayGeneralNavigationOutput;
+	    unset -f handleNavigationOption;
 	    return 0;
-	    ;;
-	*)
-	    handleGeneralInput;
-	    ;;
-	esac
+	fi
     done
 }
 #
@@ -919,6 +927,7 @@ unset -f displayHelp;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
+unset -f handleNavigationOption;
 #
 #
 #
