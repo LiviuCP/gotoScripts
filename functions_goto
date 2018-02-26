@@ -830,11 +830,11 @@ function navigate {
     # helper function for handling general input (new commands or directories to navigate to)
     function handleGeneralInput {
 	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
-	if [[ ${dir_to_visit:0:1} == ':' ]]; then
-	    commandToExecute=${dir_to_visit:1};
+	if [[ ${navigationInput:0:1} == ':' ]]; then
+	    commandToExecute=${navigationInput:1};
 	    executeNewCommand;
 	else
-	    goToDir `echo "$dir_to_visit"`;
+	    goToDir `echo "$navigationInput"`;
 	fi
     }
     # helper function for executing a new command based on the string of the previously executed shell command
@@ -890,7 +890,7 @@ function navigate {
     }
     # helper function that handles all possible options entered by user in navigation mode
     function handleNavigationOption {
-	case $dir_to_visit in
+	case $navigationInput in
 	'?')
 	    displayHelp;
 	    ;;
@@ -930,10 +930,10 @@ function navigate {
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
 	displayGeneralNavigationOutput;
-	read -e dir_to_visit;
+	read -e navigationInput;
 	clear;
 	handleNavigationOption;
-	if [[ $dir_to_visit == ':q' ]]; then
+	if [[ $navigationInput == ':q' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
