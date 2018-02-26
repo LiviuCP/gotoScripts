@@ -817,10 +817,10 @@ function navigate {
 	helpMenu="$helpMenu"'echo ":     -  repeat last successful shell command";';
 	helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
-	helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
-	helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	helpMenu="$helpMenu"'echo ":p    -  go to the previously visited directory";';
+	helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
+	helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
 	helpMenu="$helpMenu"'echo;';
