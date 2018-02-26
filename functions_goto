@@ -23,6 +23,7 @@ rHistMaxRows=10; #maximum number of entries allowed in the recent history file
 pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
+forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 #
@@ -491,10 +492,10 @@ function goToMenu {
 	    unset -f unsetHelpers;
 	    return 0;
 	else
-	    eval "$display";
-	    echo 'Invalid option! Please try again.';
-	    echo;
-	    read -e dirNr;
+	    # pass input further to the navigate function (if goToMenu had been called from navigation mode)
+	    navigationInput="$dirNr";
+	    forwardUserInput=true;
+	    return 0;
 	fi
     done
     #
@@ -887,8 +888,16 @@ function navigate {
     while [[ '1' == '1' ]]; do
 	displayGeneralNavigationOutput;
 	read -e navigationInput;
-	clear;
-	handleNavigationOption;
+	# stay in this loop as long as the function called by choosing a navigation option forwards user input back to the navigate function
+	while [[ '1' == '1' ]]; do
+	    clear;
+	    handleNavigationOption;
+	    if [[ $forwardUserInput == true ]]; then
+		forwardUserInput=false;
+	    else
+		break;
+	    fi
+	done
 	if [[ $navigationInput == ':q' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f executeNewCommand;
