@@ -441,35 +441,6 @@ function goToMenu {
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
 	    return 0;
-	# toggle to the other menu if the user chooses so
-	elif [[ -z "$dirNr" ]]; then
-	    if [[ "$1" == '-f' ]]; then
-		if [[ ! -s "$hist_file" ]]; then
-		    eval "$display";
-		    echo 'Toggling disabled: no entries in the history menu.';
-		    echo 'Please enter one of the valid options listed above.';
-		    echo;
-		    read -e dirNr;
-		else
-		    goToMenu;
-		    unsetHelpers 2> /dev/null;
-		    unset -f unsetHelpers;
-		    return $?;
-		fi
-	    else
-		if [[ ! -s "$fav_file" ]]; then
-		    eval "$display";
-		    echo 'Toggling disabled: no entries in the favorites menu.';
-		    echo 'Please enter one of the valid options listed above.';
-		    echo;
-		    read -e dirNr;
-		else
-		    goToMenu -f;
-		    unsetHelpers 2> /dev/null;
-		    unset -f unsetHelpers;
-		    return $?;
-		fi
-	    fi
 	# clear history (persistent, recent, excluded) if the user chooses to
 	elif [[ $dirNr == ':cMenu' ]]; then
 	    > "$hist_file";
