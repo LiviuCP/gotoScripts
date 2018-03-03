@@ -733,9 +733,9 @@ function navigate {
 	helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
-	helpMenu="$helpMenu"'echo ":p    -  go to the previously visited directory";';
-	helpMenu="$helpMenu"'echo ":a    -  add current directory to favorites";';
-	helpMenu="$helpMenu"'echo ":r    -  remove a directory from favorites";';
+	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
+	helpMenu="$helpMenu"'echo ">>    -  add current directory to favorites";';
+	helpMenu="$helpMenu"'echo "<<    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
 	helpMenu="$helpMenu"'echo;';
@@ -800,7 +800,7 @@ function navigate {
 	echo '****************************************************************************************************';
 	echo;
 	echo 'Enter the path of the directory you want to visit (press ENTER to return to the home dir).';
-	echo 'Enter ? for the list of of available commands or :q to quit navigation mode.';
+	echo 'Enter ? for the list of of available commands or ! to quit navigation mode.';
 	echo;
     }
     # helper function that handles all possible options entered by user in navigation mode
@@ -821,16 +821,16 @@ function navigate {
 	'>')
 	    goToMenu -f;
 	    ;;
-	':a')
-	    addToFavorites;
-	    ;;
-	':r')
-	    removeFromFavorites;
-	    ;;
-	':p')
+	',')
 	    goToPrevDir;
 	    ;;
-	':q')
+	'>>')
+	    addToFavorites;
+	    ;;
+	'<<')
+	    removeFromFavorites;
+	    ;;
+	'!')
 	    return 0;
 	    ;;
 	*)
@@ -856,7 +856,7 @@ function navigate {
 		break;
 	    fi
 	done
-	if [[ $navigationInput == ':q' ]]; then
+	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
