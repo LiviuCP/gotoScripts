@@ -422,65 +422,52 @@ function goToMenu {
     eval "$display";
     read -e dirNr;
     #
-    # Step 1: check the input entered by user. If should be either:
-    # - a number between 1 and and the number of entries contained in the file
-    # - a character that triggers flushing the content of the favorites/history file, switching to the other file or quitting the function
+    # Step 1: handle the user input
     tempVar=`wc -l "$input_file"`;
     currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
-    while [[ '1' == '1' ]];
-    do
-	# check if the user chose one of the entries from the history or favorites file
-	if [[ $dirNr =~  $nonNegativeInteger     ]] &&
-	   [[ $dirNr -ge 1                       ]] &&
-	   [[ $dirNr -le $currentNumberOfEntries ]]; then
-	    break;
-	# user chooses to quit the function
-	elif [[ $dirNr == ':q' ]]; then
-	    clear;
-	    echo "You exited the $menuType menu.";
+    # 1a: user entered the number of an entry from the history/favorites file
+    if [[ $dirNr =~  $nonNegativeInteger     ]] &&
+       [[ $dirNr -ge 1                       ]] &&
+       [[ $dirNr -le $currentNumberOfEntries ]]; then
+	# read the line from the input file
+	dirPath=`sed "$dirNr"'q;d' "$input_file"`;
+	# if the line of the input file contains a valid directory path, then visit the directory
+	if [[ ! -d "$dirPath" ]]; then
+	    handleMissingDirectory;
 	    unsetHelpers 2> /dev/null;
 	    unset -f unsetHelpers;
-	    return 0;
-	# clear history (persistent, recent, excluded) if the user chooses to
-	elif [[ $dirNr == ':cMenu' ]]; then
-	    > "$hist_file";
-	    > "$r_hist_file";
-	    > "$p_hist_file";
-	    > "$e_hist_file";
-	    # the working log file also needs to be reset to ensure consistency with the history content
-	    w_log_file="$logDir"/`date +"%Y%m%d"`;
-	    if [[ -f "$w_log_file" ]]; then
-		> "$w_log_file";
-	    fi
-	    # favorites file should be kept so excluded history should be re-created (0 visits per entry)
-	    while read currentEntry;
-	    do
-		echo "$currentEntry"';0' >> "$e_hist_file";
-	    done < "$fav_file"
-	    clear;
-	    echo 'Content of navigation history menu has been erased.';
-	    unsetHelpers 2> /dev/null;
-	    unset -f unsetHelpers;
-	    return 0;
-	else
-	    # pass input further to the navigate function (if goToMenu had been called from navigation mode)
-	    navigationInput="$dirNr";
-	    forwardUserInput=true;
-	    return 0;
+	    return 1;
 	fi
-    done
-    #
-    # Step 2: read the line from the input file
-    dirPath=`sed "$dirNr"'q;d' "$input_file"`;
-    #
-    # Step 3: if the line of the input file contains a valid directory path, then visit the directory
-    if [[ ! -d "$dirPath" ]]; then
-	handleMissingDirectory;
-	unsetHelpers 2> /dev/null;
-	unset -f unsetHelpers;
-	return 1;
+	goToDir "$dirPath";
+    # 1b: user chose to quit the function
+    elif [[ $dirNr == ':q' ]]; then
+	clear;
+	echo "You exited the $menuType menu.";
+    # 1c: user chose to clear history (persistent, recent, excluded)
+    elif [[ $dirNr == ':cMenu' ]]; then
+	> "$hist_file";
+	> "$r_hist_file";
+	> "$p_hist_file";
+	> "$e_hist_file";
+	# the working log file also needs to be reset to ensure consistency with the history content
+	w_log_file="$logDir"/`date +"%Y%m%d"`;
+	if [[ -f "$w_log_file" ]]; then
+	    > "$w_log_file";
+	fi
+	# favorites file should be kept so excluded history should be re-created (0 visits per entry)
+	while read currentEntry;
+	do
+	    echo "$currentEntry"';0' >> "$e_hist_file";
+	done < "$fav_file"
+	clear;
+	echo 'Content of navigation history menu has been erased.';
+    # 1d: any other input to be passed further to the navigate function (if goToMenu had been called from navigation mode)
+    else
+	navigationInput="$dirNr";
+	forwardUserInput=true;
+	return 0;
     fi
-    goToDir "$dirPath";
+    #
     unsetHelpers 2> /dev/null;
     unset -f unsetHelpers;
 }
