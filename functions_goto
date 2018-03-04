@@ -226,7 +226,7 @@ function goToMenu {
 	if [[ -s "$fav_file" ]]; then
 	    echo 'Press ENTER to toggle to the favorite directories menu.';
 	fi
-	echo 'Enter :cMenu (case-sensitive) to clear history or :q to quit.';
+	echo 'Enter :cMenu (case-sensitive) to clear history or ! to quit.';
 	echo;
     }
     #displays the favorites menu in a different (tailor-made) manner from the history menu
@@ -243,7 +243,7 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Press ENTER to toggle to the navigation history menu.';
 	fi
-	echo 'Enter :cMenu (case-sensitive) to clear history or :q to quit.';
+	echo 'Enter :cMenu (case-sensitive) to clear history or ! to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
@@ -258,7 +258,7 @@ function goToMenu {
 	    echo 'Please choose the required action: ';
 	    echo ':r to remove the directory from the menus';
 	    echo ':m to map to an existing directory';
-	    echo ':q to quit';
+	    echo '! to quit';
 	    echo;
 	    read -e userChoice;
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
@@ -382,7 +382,7 @@ function goToMenu {
 		echo "Replacing directory: $replacingDir";
 		echo 'Mapping performed successfully.';
 		return 0;
-	    elif [[ $userChoice == ':q' ]]; then
+	    elif [[ $userChoice == '!' ]]; then
 		clear;
 		echo "You exited the $menuType menu.";
 		return 0;
@@ -440,7 +440,7 @@ function goToMenu {
 	fi
 	goToDir "$dirPath";
     # 1b: user chose to quit the function
-    elif [[ $dirNr == ':q' ]]; then
+    elif [[ $dirNr == '!' ]]; then
 	clear;
 	echo "You exited the $menuType menu.";
     # 1c: user chose to clear history (persistent, recent, excluded)
@@ -590,7 +590,7 @@ function removeFromFavorites {
 	cat -n "$fav_file";
 	echo;
 	echo 'Enter the number of the entry to be removed';
-	echo 'Enter :q to quit';
+	echo 'Enter ! to quit';
 	echo;
     }
     displayFavoritesFile;
@@ -607,7 +607,7 @@ function removeFromFavorites {
 	   [[ $dirNr -ge 1                       ]] &&
 	   [[ $dirNr -le $currentNumberOfEntries ]]; then
 	    break;
-	elif [[ $dirNr == ':q' ]]; then
+	elif [[ $dirNr == '!' ]]; then
 	    clear;
 	    echo 'No entry removed from favorites.';
 	    unset -f displayFavoritesFile;
