@@ -267,9 +267,6 @@ function goToMenu {
 	echo 'Current directory: '`pwd`;
 	echo;
 	echo 'Enter the number of the directory you want to navigate to.';
-	if [[ -s "$fav_file" ]]; then
-	    echo 'Press ENTER to toggle to the favorite directories menu.';
-	fi
 	echo 'Enter ! to quit.';
 	echo;
     }
@@ -284,9 +281,6 @@ function goToMenu {
 	echo 'Current directory: '`pwd`;
 	echo;
 	echo 'Enter the number of the directory you want to navigate to.';
-	if [[ -s "$hist_file" ]]; then
-	    echo 'Press ENTER to toggle to the navigation history menu.';
-	fi
 	echo 'Enter ! to quit.';
 	echo;
     }
