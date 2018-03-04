@@ -226,7 +226,7 @@ function goToMenu {
 	if [[ -s "$fav_file" ]]; then
 	    echo 'Press ENTER to toggle to the favorite directories menu.';
 	fi
-	echo 'Enter :cMenu (case-sensitive) to clear history or ! to quit.';
+	echo 'Enter !<> (case-sensitive) to clear history or ! to quit.';
 	echo;
     }
     #displays the favorites menu in a different (tailor-made) manner from the history menu
@@ -243,7 +243,7 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Press ENTER to toggle to the navigation history menu.';
 	fi
-	echo 'Enter :cMenu (case-sensitive) to clear history or ! to quit.';
+	echo 'Enter !<> (case-sensitive) to clear history or ! to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
@@ -256,13 +256,13 @@ function goToMenu {
 	while [[ '1' == '1' ]]; do
 	    echo;
 	    echo 'Please choose the required action: ';
-	    echo ':r to remove the directory from the menus';
-	    echo ':m to map to an existing directory';
+	    echo '!r to remove the directory from the menus';
+	    echo '!m to map to an existing directory';
 	    echo '! to quit';
 	    echo;
 	    read -e userChoice;
 	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
-	    if [[ $userChoice == ':r' ]]; then
+	    if [[ $userChoice == '!r' ]]; then
 		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
 		if [[ -f "$w_log_file" ]]; then
 		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
@@ -286,7 +286,7 @@ function goToMenu {
 		echo "Entry $dirPath has been removed from the menus.";
 		return 0;
 	    # user chooses to replace the directory entry with another (existing) path
-	    elif [[ $userChoice == ':m' ]]; then
+	    elif [[ $userChoice == '!m' ]]; then
 		clear;
 		echo 'Enter the name of the replacing directory: ';
 		read -e replacingDir;
@@ -444,7 +444,7 @@ function goToMenu {
 	clear;
 	echo "You exited the $menuType menu.";
     # 1c: user chose to clear history (persistent, recent, excluded)
-    elif [[ $dirNr == ':cMenu' ]]; then
+    elif [[ $dirNr == '!<>' ]]; then
 	> "$hist_file";
 	> "$r_hist_file";
 	> "$p_hist_file";
