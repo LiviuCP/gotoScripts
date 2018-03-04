@@ -270,7 +270,7 @@ function goToMenu {
 	if [[ -s "$fav_file" ]]; then
 	    echo 'Press ENTER to toggle to the favorite directories menu.';
 	fi
-	echo 'Enter !<> (case-sensitive) to clear history or ! to quit.';
+	echo 'Enter ! to quit.';
 	echo;
     }
     #displays the favorites menu in a different (tailor-made) manner from the history menu
@@ -287,7 +287,7 @@ function goToMenu {
 	if [[ -s "$hist_file" ]]; then
 	    echo 'Press ENTER to toggle to the navigation history menu.';
 	fi
-	echo 'Enter !<> (case-sensitive) to clear history or ! to quit.';
+	echo 'Enter ! to quit.';
 	echo;
     }
     # handles the case when the directory chosen for visiting does not exist
@@ -487,25 +487,7 @@ function goToMenu {
     elif [[ $dirNr == '!' ]]; then
 	clear;
 	echo "You exited the $menuType menu.";
-    # 1c: user chose to clear history (persistent, recent, excluded)
-    elif [[ $dirNr == '!<>' ]]; then
-	> "$hist_file";
-	> "$r_hist_file";
-	> "$p_hist_file";
-	> "$e_hist_file";
-	# the working log file also needs to be reset to ensure consistency with the history content
-	w_log_file="$logDir"/`date +"%Y%m%d"`;
-	if [[ -f "$w_log_file" ]]; then
-	    > "$w_log_file";
-	fi
-	# favorites file should be kept so excluded history should be re-created (0 visits per entry)
-	while read currentEntry;
-	do
-	    echo "$currentEntry"';0' >> "$e_hist_file";
-	done < "$fav_file"
-	clear;
-	echo 'Content of navigation history menu has been erased.';
-    # 1d: any other input to be passed further to the navigate function (if goToMenu had been called from navigation mode)
+    # 1c: any other input to be passed further to the navigate function (if goToMenu had been called from navigation mode)
     else
 	navigationInput="$dirNr";
 	forwardUserInput=true;
@@ -780,6 +762,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
 	helpMenu="$helpMenu"'echo ">>    -  add current directory to favorites";';
 	helpMenu="$helpMenu"'echo "!>    -  remove a directory from favorites";';
+	helpMenu="$helpMenu"'echo "!<>   -  clear navigation history";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
 	helpMenu="$helpMenu"'echo;';
@@ -847,6 +830,24 @@ function navigate {
 	echo 'Enter ? for the list of of available commands or ! to quit navigation mode.';
 	echo;
     }
+    # helper function for erasing the navigation history
+    function clearHistory {
+	> "$hist_file";
+	> "$r_hist_file";
+	> "$p_hist_file";
+	> "$e_hist_file";
+	# the working log file also needs to be reset to ensure consistency with the history content
+	w_log_file="$logDir"/`date +"%Y%m%d"`;
+	if [[ -f "$w_log_file" ]]; then
+	    > "$w_log_file";
+	fi
+	# favorites file should be kept so excluded history should be re-created (0 visits per entry)
+	while read currentEntry;
+	do
+	    echo "$currentEntry"';0' >> "$e_hist_file";
+	done < "$fav_file"
+	echo 'Content of navigation history menu has been erased.';
+    }
     # helper function that handles all possible options entered by user in navigation mode
     function handleNavigationOption {
 	case $navigationInput in
@@ -873,6 +874,9 @@ function navigate {
 	    ;;
 	'!>')
 	    removeFromFavorites;
+	    ;;
+	'!<>')
+	    clearHistory;
 	    ;;
 	'!')
 	    return 0;
@@ -910,6 +914,7 @@ function navigate {
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f displayGeneralNavigationOutput;
 	    unset -f handleNavigationOption;
+	    unset -f clearHistory;
 	    return 0;
 	fi
     done
@@ -941,6 +946,7 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
+unset -f clearHistory;
 #
 #
 #
