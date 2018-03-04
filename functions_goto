@@ -779,7 +779,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
 	helpMenu="$helpMenu"'echo ">>    -  add current directory to favorites";';
-	helpMenu="$helpMenu"'echo "<<    -  remove a directory from favorites";';
+	helpMenu="$helpMenu"'echo "!>    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
 	helpMenu="$helpMenu"'echo;';
@@ -871,7 +871,7 @@ function navigate {
 	'>>')
 	    addToFavorites;
 	    ;;
-	'<<')
+	'!>')
 	    removeFromFavorites;
 	    ;;
 	'!')
