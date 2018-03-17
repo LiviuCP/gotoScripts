@@ -278,6 +278,7 @@ function goToMenu {
 		# history should be consolidated again
 		consolidateHistory;
 		# confirm removal has been successfully performed
+		echo;
 		echo "Entry $dirPath has been removed from the menus.";
 		return 0;
 	    # user chooses to replace the directory entry with another (existing) path
