@@ -34,6 +34,7 @@ nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negativ
 function consolidateHistory {
     # first sort the recent history file by name of each directory (not path) and add it to consolidated history
     > "$temp_file";
+    > "$aux_temp_file";
     while read currentEntry;
     do
 	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
