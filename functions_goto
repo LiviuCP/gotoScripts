@@ -576,51 +576,40 @@ function removeFromFavorites {
     displayFavoritesFile;
     read -e dirNr;
     #
-    # Step 3: check the input entered by user. If should be either:
-    # - a number between 1 and and the number of entries contained in the file
-    # - a character that triggers quitting the function
+    # Step 3: check the input entered by user and perform the required actions
     tempVar=`wc -l "$fav_file"`;
     currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
-    while [[ '1' == '1' ]];
-    do
-	if [[ $dirNr =~  $nonNegativeInteger     ]] &&
-	   [[ $dirNr -ge 1                       ]] &&
-	   [[ $dirNr -le $currentNumberOfEntries ]]; then
-	    break;
-	elif [[ $dirNr == '!' ]]; then
-	    clear;
-	    echo 'No entry removed from favorites.';
-	    unset -f displayFavoritesFile;
-	    return 0;
-	else
-	    # handle the input as "normal" navigation input
-	    navigationInput="$dirNr";
-	    forwardUserInput=true;
-	    return 0;
+    if [[ $dirNr =~  $nonNegativeInteger     ]] &&
+       [[ $dirNr -ge 1                       ]] &&
+       [[ $dirNr -le $currentNumberOfEntries ]]; then
+	favDirToRemove=`sed "$dirNr"'q;d' "$fav_file"`;
+	exclDirToRemove=`grep "$favDirToRemove"';' "$e_hist_file"`;
+	visitsCount=`echo "$exclDirToRemove" | cut -f 2 -d ';'`;
+	grep -v "$exclDirToRemove" "$e_hist_file" > "$temp_file";
+	mv "$temp_file" "$e_hist_file";
+	# Also move the entry back to the persistent history file if it has at least one visit
+	if [[ $visitsCount -gt 0 ]]; then
+	    echo $exclDirToRemove >> "$p_hist_file";
+	    # Always sort the persistent history file when it is modified
+	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+	    mv "$temp_file" "$p_hist_file";
+	    # history should be consolidated again
+	    consolidateHistory;
 	fi
-    done
-    #
-    # Step 4: remove the entry from the excluded history file
-    favDirToRemove=`sed "$dirNr"'q;d' "$fav_file"`;
-    exclDirToRemove=`grep "$favDirToRemove"';' "$e_hist_file"`;
-    visitsCount=`echo "$exclDirToRemove" | cut -f 2 -d ';'`;
-    grep -v "$exclDirToRemove" "$e_hist_file" > "$temp_file";
-    mv "$temp_file" "$e_hist_file";
-    # Also move the entry back to the persistent history file if it has at least one visit
-    if [[ $visitsCount -gt 0 ]]; then
-	echo $exclDirToRemove >> "$p_hist_file";
-	# Always sort the persistent history file when it is modified
-	sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-	mv "$temp_file" "$p_hist_file";
-	# history should be consolidated again
-	consolidateHistory;
+	# actual remove operation
+	sed "$dirNr"'d' "$fav_file" > "$temp_file";
+	mv "$temp_file" "$fav_file";
+	clear;
+	echo "Entry $favDirToRemove removed from the favorites menu.";
+    elif [[ $dirNr == '!' ]]; then
+	clear;
+	echo 'No entry removed from favorites.';
+	unset -f displayFavoritesFile;
+    else
+	# handle the input as "normal" navigation input
+	navigationInput="$dirNr";
+	forwardUserInput=true;
     fi
-    #
-    # Step 5: delete the entry
-    sed "$dirNr"'d' "$fav_file" > "$temp_file";
-    mv "$temp_file" "$fav_file";
-    clear;
-    echo "Entry $favDirToRemove removed from the favorites menu.";
 }
 #
 # ******************************************************************************************************************
