@@ -611,6 +611,8 @@ function removeFromFavorites {
 	echo;
 	cat -n "$fav_file";
 	echo;
+	echo 'Current directory: '`pwd`;
+	echo;
 	echo 'Enter the number of the entry to be removed';
 	echo 'Enter ! to quit';
 	echo;
