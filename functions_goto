@@ -591,10 +591,10 @@ function removeFromFavorites {
 	    unset -f displayFavoritesFile;
 	    return 0;
 	else
-	    displayFavoritesFile;
-	    echo 'Invalid option! Please try again.';
-	    echo;
-	    read -e dirNr;
+	    # handle the input as "normal" navigation input
+	    navigationInput="$dirNr";
+	    forwardUserInput=true;
+	    return 0;
 	fi
     done
     #
