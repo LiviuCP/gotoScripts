@@ -248,147 +248,141 @@ function goToMenu {
 	clear;
 	echo "Invalid path $dirPath";
 	echo 'The directory might have been moved or deleted.';
-	while [[ '1' == '1' ]]; do
-	    echo;
-	    echo 'Please choose the required action: ';
-	    echo '!r to remove the directory from the menus';
-	    echo '!m to map to an existing directory';
-	    echo '! to quit';
-	    echo;
-	    read -e userChoice;
-	    # user chooses to remove the entry from menus (consolidated history and/or favorites)
-	    if [[ $userChoice == '!r' ]]; then
-		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
-		if [[ -f "$w_log_file" ]]; then
-		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
-		    mv "$temp_file" "$w_log_file";
-		fi
-		# ensure the entry is removed from recent history (if there)
-		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
-		mv "$temp_file" "$r_hist_file";
-		# ensure the entry is removed from persistent history (if there)
-		grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
-		sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-		rm "$temp_file";
-		# ensure the entry is removed from favorites file (if there)
-		grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
-		mv "$temp_file" "$e_hist_file";
-		grep -xv "$dirPath" "$fav_file" > "$temp_file";
-		mv "$temp_file" "$fav_file";
-		# history should be consolidated again
-		consolidateHistory;
-		# confirm removal has been successfully performed
-		echo;
-		echo "Entry $dirPath has been removed from the menus.";
-		return 0;
-	    # user chooses to replace the directory entry with another (existing) path
-	    elif [[ $userChoice == '!m' ]]; then
-		clear;
-		echo 'Enter the name of the replacing directory: ';
-		read -e replacingDir;
-		# the mapping directory should exist and be a valid directory
-		if [[ ! -d "$replacingDir" ]]; then
-		    echo "Directory $replacingDir does not exist or has been deleted.";
-		    echo "Cannot map the missing directory $dirPath.";
-		    return 1;
-		fi
-		# ensure the entry gets removed from the working log file (if the file had been created in the current day)
-		if [[ -f "$w_log_file" ]]; then
-		    grep -xv "$dirPath" "$w_log_file" > "$temp_file";
-		    mv "$temp_file" "$w_log_file";
-		fi
-		# ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
-		cd "$replacingDir";
-		replacingDir=`pwd`;
-		cd - > /dev/null;
-		# identify the file where the path of the directory to be replaced lives
-		grep "$dirPath"';' "$e_hist_file" > /dev/null;
-		if [[ $? == 0 ]]; then
-		    replaced_dir_file="$e_hist_file";
-		else
-		    replaced_dir_file="$p_hist_file";
-		fi
-		# check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
-		visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
-		foundEntry=`grep "$replacingDir"';' "$p_hist_file"`;
-		if [[ $? == 0 ]]; then
-		    visits_file="$p_hist_file";
-		else
-		    foundEntry=`grep "$replacingDir"';' "$e_hist_file"`;
-		    if [[ $? == 0 ]]; then
-			visits_file="$e_hist_file";
-		    fi
-		fi
-		# get number of times the replacing directory has been visited (-1 if not visited/not added to favorites)
-		if [[ "$visits_file" == "$p_hist_file" ]]; then
-		    replacingDirEntry=`grep "$replacingDir"';' "$p_hist_file"`;
-		    replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
-		elif [[ "$visits_file" == "$e_hist_file" ]]; then
-		    replacingDirEntry=`grep "$replacingDir"';' "$e_hist_file"`;
-		    replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
-		else
-		    replacingDirVisits='-1';
-		fi
-		# remove the entry from recent history (if there)
-		grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
-		mv "$temp_file" "$r_hist_file";
-		# do the actual mapping operation
-		replacedDirMatchedRow=`grep "$dirPath"';' "$replaced_dir_file"`;
-		replacedDirVisits=`echo $replacedDirMatchedRow | cut -f 2 -d ';'`;
-		# - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
-		if [[ $replacingDirVisits == '-1' ]]; then
-		    replacedDirReplacingRow="$replacingDir"';'"$replacedDirVisits";
-		    grep -v "$replacedDirMatchedRow" "$replaced_dir_file" > "$temp_file";
-		    echo "$replacedDirReplacingRow" >> "$temp_file";
-		    mv "$temp_file" "$replaced_dir_file";
-		    # if missing dir had been in the persistent history file: re-sort file
-		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
-			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-			mv "$temp_file" "$p_hist_file";
-			# if missing dir had been in the excluded history file: re-create favorites file after update
-		    else
-			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		    fi
-		# - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
-		else
-		    # if the number of visits of the dir to be replaced exceeds the one of the replacing dir, then update the number of visits of the replacing dir to the higher figure
-		    if [[ $replacingDirVisits -lt $replacedDirVisits ]]; then
-			replacingDirPath=`echo $replacingDirEntry | cut -f 1 -d ';'`;
-			replacingDirReplacingRow="$replacingDirPath"';'"$replacedDirVisits";
-			grep -v "$replacingDirEntry" "$visits_file" > "$temp_file";
-			echo "$replacingDirReplacingRow" >> "$temp_file";
-			mv "$temp_file" "$visits_file";
-		    fi
-		    # remove the replaced directory from its file (either persistent history or excluded history file)
-		    grep -v "$dirPath"';' "$replaced_dir_file" > "$temp_file";
-		    mv "$temp_file" "$replaced_dir_file";
-		    # if missing dir had been in the persistent history file: re-sort file
-		    if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
-			sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-			mv "$temp_file" "$p_hist_file";
-		    # if missing dir had been in the excluded history file: re-create favorites file after update
-		    else
-			cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		    fi
-		fi
-		# history should be consolidated again
-		consolidateHistory;
-		# confirm mapping has been successfully performed
-		echo "Missing directory: $dirPath";
-		echo "Replacing directory: $replacingDir";
-		echo 'Mapping performed successfully.';
-		return 0;
-	    elif [[ $userChoice == '!' ]]; then
-		clear;
-		echo "You exited the $menuType menu.";
-		return 0;
-	    else
-		# handle the input as "normal" navigation input
-		navigationInput="$userChoice";
-		forwardUserInput=true;
-		return 0;
+	echo;
+	echo 'Please choose the required action: ';
+	echo '!r to remove the directory from the menus';
+	echo '!m to map to an existing directory';
+	echo '! to quit';
+	echo;
+	read -e userChoice;
+	# user chooses to remove the entry from menus (consolidated history and/or favorites)
+	if [[ $userChoice == '!r' ]]; then
+	    # ensure the entry gets removed from the working log file (if the file had been created in the current day)
+	    if [[ -f "$w_log_file" ]]; then
+		grep -xv "$dirPath" "$w_log_file" > "$temp_file";
+		mv "$temp_file" "$w_log_file";
 	    fi
-	done
+	    # ensure the entry is removed from recent history (if there)
+	    grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
+	    mv "$temp_file" "$r_hist_file";
+	    # ensure the entry is removed from persistent history (if there)
+	    grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
+	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+	    rm "$temp_file";
+	    # ensure the entry is removed from favorites file (if there)
+	    grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
+	    mv "$temp_file" "$e_hist_file";
+	    grep -xv "$dirPath" "$fav_file" > "$temp_file";
+	    mv "$temp_file" "$fav_file";
+	    # history should be consolidated again
+	    consolidateHistory;
+	    # confirm removal has been successfully performed
+	    echo;
+	    echo "Entry $dirPath has been removed from the menus.";
+	# user chooses to replace the directory entry with another (existing) path
+	elif [[ $userChoice == '!m' ]]; then
+	    clear;
+	    echo 'Enter the name of the replacing directory: ';
+	    read -e replacingDir;
+	    # the mapping directory should exist and be a valid directory
+	    if [[ ! -d "$replacingDir" ]]; then
+		echo "Directory $replacingDir does not exist or has been deleted.";
+		echo "Cannot map the missing directory $dirPath.";
+		return 1;
+	    fi
+	    # ensure the entry gets removed from the working log file (if the file had been created in the current day)
+	    if [[ -f "$w_log_file" ]]; then
+		grep -xv "$dirPath" "$w_log_file" > "$temp_file";
+		mv "$temp_file" "$w_log_file";
+	    fi
+	    # ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
+	    cd "$replacingDir";
+	    replacingDir=`pwd`;
+	    cd - > /dev/null;
+	    # identify the file where the path of the directory to be replaced lives
+	    grep "$dirPath"';' "$e_hist_file" > /dev/null;
+	    if [[ $? == 0 ]]; then
+		replaced_dir_file="$e_hist_file";
+	    else
+		replaced_dir_file="$p_hist_file";
+	    fi
+	    # check if the replacing dir is part of consolidated history, favorites file or none of them (not yet visited or added to favorites)
+	    visits_file=''; # the file where the number of visits of the replacing directory will be looked for (no file if not yet visited or added to favorites)
+	    foundEntry=`grep "$replacingDir"';' "$p_hist_file"`;
+	    if [[ $? == 0 ]]; then
+		visits_file="$p_hist_file";
+	    else
+		foundEntry=`grep "$replacingDir"';' "$e_hist_file"`;
+		if [[ $? == 0 ]]; then
+		    visits_file="$e_hist_file";
+		fi
+	    fi
+	    # get number of times the replacing directory has been visited (-1 if not visited/not added to favorites)
+	    if [[ "$visits_file" == "$p_hist_file" ]]; then
+		replacingDirEntry=`grep "$replacingDir"';' "$p_hist_file"`;
+		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+	    elif [[ "$visits_file" == "$e_hist_file" ]]; then
+		replacingDirEntry=`grep "$replacingDir"';' "$e_hist_file"`;
+		replacingDirVisits=`echo $replacingDirEntry | cut -f 2 -d ';'`;
+	    else
+		replacingDirVisits='-1';
+	    fi
+	    # remove the entry from recent history (if there)
+	    grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
+	    mv "$temp_file" "$r_hist_file";
+	    # do the actual mapping operation
+	    replacedDirMatchedRow=`grep "$dirPath"';' "$replaced_dir_file"`;
+	    replacedDirVisits=`echo $replacedDirMatchedRow | cut -f 2 -d ';'`;
+	    # - case 1: the replacing directory is not contained in the files (not yet visited/not yet added to favorites) - just do a path replacement
+	    if [[ $replacingDirVisits == '-1' ]]; then
+		replacedDirReplacingRow="$replacingDir"';'"$replacedDirVisits";
+		grep -v "$replacedDirMatchedRow" "$replaced_dir_file" > "$temp_file";
+		echo "$replacedDirReplacingRow" >> "$temp_file";
+		mv "$temp_file" "$replaced_dir_file";
+		# if missing dir had been in the persistent history file: re-sort file
+		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
+		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+		    mv "$temp_file" "$p_hist_file";
+		# if missing dir had been in the excluded history file: re-create favorites file after update
+		else
+		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		fi
+	    # - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
+	    else
+		# if the number of visits of the dir to be replaced exceeds the one of the replacing dir, then update the number of visits of the replacing dir to the higher figure
+		if [[ $replacingDirVisits -lt $replacedDirVisits ]]; then
+		    replacingDirPath=`echo $replacingDirEntry | cut -f 1 -d ';'`;
+		    replacingDirReplacingRow="$replacingDirPath"';'"$replacedDirVisits";
+		    grep -v "$replacingDirEntry" "$visits_file" > "$temp_file";
+		    echo "$replacingDirReplacingRow" >> "$temp_file";
+		    mv "$temp_file" "$visits_file";
+		fi
+		# remove the replaced directory from its file (either persistent history or excluded history file)
+		grep -v "$dirPath"';' "$replaced_dir_file" > "$temp_file";
+		mv "$temp_file" "$replaced_dir_file";
+		# if missing dir had been in the persistent history file: re-sort file
+		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
+		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+		    mv "$temp_file" "$p_hist_file";
+		# if missing dir had been in the excluded history file: re-create favorites file after update
+		else
+		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		fi
+	    fi
+	    # history should be consolidated again
+	    consolidateHistory;
+	    # confirm mapping has been successfully performed
+	    echo "Missing directory: $dirPath";
+	    echo "Replacing directory: $replacingDir";
+	    echo 'Mapping performed successfully.';
+	elif [[ $userChoice == '!' ]]; then
+	    clear;
+	    echo "You exited the $menuType menu.";
+	else
+	    # handle the input as "normal" navigation input
+	    navigationInput="$userChoice";
+	    forwardUserInput=true;
+	fi
     }
     # unsets all helper functions so they are not accessible by user from CLI
     # should be called before the main function returns, otherwise the helpers might become inaccessible earlier than required
