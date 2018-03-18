@@ -383,8 +383,10 @@ function goToMenu {
 		echo "You exited the $menuType menu.";
 		return 0;
 	    else
-		clear;
-		echo 'Invalid option! Please try again.';
+		# handle the input as "normal" navigation input
+		navigationInput="$userChoice";
+		forwardUserInput=true;
+		return 0;
 	    fi
 	done
     }
