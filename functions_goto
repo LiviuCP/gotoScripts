@@ -12,15 +12,18 @@ logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" file
 r_hist_file=$scriptDir/.recent_history; #file containing a list of the most recently visited directories
 p_hist_file=$scriptDir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
 e_hist_file=$scriptDir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
+c_r_hist_file=$scriptDir/.recent_command_history; #file containing the last commands executed by user in navigation mode (unsorted)
 #
 hist_file=$scriptDir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
 fav_file=$scriptDir/.goto_favorites; #file containing the directories saved to favorites
 format_file=$scriptDir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
+c_hist_file=$scriptDir/.command_history; #file containing the last commands executed by user in navigation mode (sorted)
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
 #
 rHistMaxRows=10; #maximum number of entries allowed in the recent history file
 pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
+cHistMaxRows=25; #maximum number of entries allowed in the command history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
@@ -54,6 +57,13 @@ function consolidateHistory {
     rm "$aux_temp_file";
 }
 #
+# Same as previous function but this time for command history (in this stage it only sorts the recent command entries)
+#
+function consolidateCommandHistory {
+    sort "$c_r_hist_file" > "$temp_file";
+    mv "$temp_file" "$c_hist_file";
+}
+#
 # This function is only run once (when this file is loaded) and prepares the environment for usage
 #
 function init {
@@ -61,12 +71,18 @@ function init {
     touch "$r_hist_file";
     touch "$p_hist_file";
     touch "$e_hist_file";
+    touch "$c_r_hist_file";
     touch "$fav_file";
     # ensure the recent history file has the maximum allowed number of entries
     head -"$rHistMaxRows" "$r_hist_file" > "$temp_file";
     mv "$temp_file" "$r_hist_file";
+    # ensure the recent commands history file has the maximum allowed number of entries
+    head -"$cHistMaxRows" "$c_r_hist_file" > "$temp_file";
+    mv "$temp_file" "$c_r_hist_file";
     # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
     consolidateHistory;
+    # ensure the command history is sorted
+    consolidateCommandHistory;
     # create log directory if not already existent
     if [[ ! -d "$logDir" ]]; then
 	mkdir "$logDir";
@@ -614,10 +630,32 @@ function removeFromFavorites {
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
+    # updates the file with most recently executed commands and sorts it
+    function updateCommandHistory {
+	nrOfCmdRows=`wc -l "$c_r_hist_file" | awk '{print $1;}'`;
+	matchedCmdRow=`grep -xn "$prevCommand" "$c_r_hist_file"`;
+	#remove previous command from history file if already contained
+	if [[ $? == 0 ]]; then
+	    matchedCmdRowNr=`echo $matchedCmdRow | cut -f 1 -d : `;
+	    sed "$matchedCmdRowNr"'d' "$c_r_hist_file" > "$temp_file";
+	#if number of rows is at maximum, remove a row to make room for the new entry
+	elif [[ $nrOfCmdRows -eq $cHistMaxRows ]]; then
+	    sed "$cHistMaxRows"'d' "$c_r_hist_file" > "$temp_file";
+	#copy the history file to temporary file to maintain consistency with above cases
+	else
+	    cp "$c_r_hist_file" "$temp_file";
+	fi
+	echo $prevCommand > "$c_r_hist_file";
+	cat "$temp_file" >> "$c_r_hist_file";
+	rm "$temp_file";
+	#finally sort the file so user can spot the commands easier
+	consolidateCommandHistory;
+    }
     # helper function for executing a new shell command (either with new input or based on a previous command)
     function executeNewCommand {
 	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
 	prevCommand="$commandToExecute";
+	updateCommandHistory;
 	echo "Command is being executed: $commandToExecute";
 	echo '--------------------------';
 	eval "$commandToExecute";
@@ -845,6 +883,7 @@ function navigate {
 	done
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
+	    unset -f updateCommandHistory;
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
 	    unset -f displayCurrentDirContent;
@@ -877,6 +916,7 @@ unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
 unset -f sortFavoritesByBaseName;
+unset -f updateCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f displayCurrentDirContent;
