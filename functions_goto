@@ -674,6 +674,38 @@ function removeFromFavorites {
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
 function navigate {
+    # accesses the menu with the most recent executed commands, user can choose one entry to execute that command again
+    function goToCommandMenu {
+	clear;
+	echo 'COMMAND HISTORY';
+	echo;
+	cat -n "$c_hist_file";
+	echo;
+	echo 'Current directory: '`pwd`;
+	echo;
+	echo 'Enter the number of the command you want to execute.';
+	echo 'Enter ! to quit';
+	echo;
+	read -e cmdNr;
+	# check the input entered by user and perform the required actions
+	tempVar=`wc -l "$c_hist_file"`;
+	currentNumberOfCmdEntries=`echo $tempVar | cut -f 1 -d ' '`;
+	if [[ $cmdNr =~  $nonNegativeInteger     ]] &&
+	   [[ $cmdNr -ge 1                       ]] &&
+	   [[ $cmdNr -le $currentNumberOfCmdEntries ]]; then
+	    # execute the actual command from command history menu
+	    commandToExecute=`sed "$cmdNr"'q;d' "$c_hist_file"`;
+	    clear;
+	    executeNewCommand;
+	elif [[ $cmdNr == '!' ]]; then
+	    clear;
+	    echo 'No command executed.';
+	else
+	    # handle the input as "normal" navigation input
+	    navigationInput="$cmdNr";
+	    forwardUserInput=true;
+	fi
+    }
     # updates the file with most recently executed commands and sorts it
     function updateCommandHistory {
 	nrOfCmdRows=`wc -l "$c_r_hist_file" | awk '{print $1;}'`;
@@ -778,6 +810,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo ":     -  repeat last successful shell command";';
 	helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
+	helpMenu="$helpMenu"'echo ":<    -  enter command history menu";';
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
@@ -881,6 +914,9 @@ function navigate {
 	'::')
 	    execCommandBasedOnPrevInput;
 	    ;;
+	':<')
+	    goToCommandMenu;
+	    ;;
 	'<')
 	    goToMenu;
 	    ;;
@@ -927,6 +963,7 @@ function navigate {
 	done
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
+	    unset -f goToCommandMenu;
 	    unset -f updateCommandHistory;
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
@@ -960,6 +997,7 @@ unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
 unset -f sortFavoritesByBaseName;
+unset -f goToCommandMenu;
 unset -f updateCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
