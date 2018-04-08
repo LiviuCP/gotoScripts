@@ -26,6 +26,7 @@ pHistMaxRows=15; #maximum number of entries allowed in the persistent history fi
 cHistMaxRows=25; #maximum number of entries allowed in the command history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
+minNrOfCmdChars=10; #minimum number of characters (including spaces) that a command should have to be included in command history
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
@@ -681,7 +682,7 @@ function navigate {
 	else
 	    cp "$c_r_hist_file" "$temp_file";
 	fi
-	echo $prevCommand > "$c_r_hist_file";
+	echo "$prevCommand" > "$c_r_hist_file";
 	cat "$temp_file" >> "$c_r_hist_file";
 	rm "$temp_file";
 	#finally sort the file so user can spot the commands easier
@@ -697,7 +698,9 @@ function navigate {
     function executeNewCommand {
 	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
 	prevCommand="$commandToExecute";
-	updateCommandHistory;
+	if [[ ${#commandToExecute} -ge $minNrOfCmdChars ]]; then
+	    updateCommandHistory;
+	fi
 	echo "Command is being executed: $commandToExecute";
 	echo '--------------------------';
 	eval "$commandToExecute";
