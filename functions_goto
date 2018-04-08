@@ -676,6 +676,10 @@ function removeFromFavorites {
 function navigate {
     # accesses the menu with the most recent executed commands, user can choose one entry to execute that command again
     function goToCommandMenu {
+	if [[ ! -s "$c_hist_file" ]]; then
+	    echo "There are no entries in the command history menu.";
+	    return 1;
+	fi
 	clear;
 	echo 'COMMAND HISTORY';
 	echo;
