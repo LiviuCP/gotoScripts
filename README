@@ -145,9 +145,15 @@ To repeat the last executed command just enter the : character and press ENTER.
 
 To enter a new command by editing the previously executed one just enter :: and press ENTER. This feature is only available on BASH4 so make sure to upgrade the shell in order to use it.
 
-All possible options can be viewed by entering the ? character followed by ENTER in navigation mode.
+It is also possible to enter the command history menu by typing :< and pressing ENTER. Similar to navigation history by entering a valid number the chosen command is executed.
+
+To erase the command history enter :<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
 
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
+
+5.7. Getting help
+
+All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode.
 
 6. THE HISTORY FUNCTIONALITY
 
@@ -156,6 +162,10 @@ Each time a directory is visited, the event is tracked in a history file. There 
 - the persistent history file
 - the consolidated history file
 - the excluded history file
+
+In addition to these a command history menu is available, that tracks the most recently executed shell commands in navigation mode. This is different from the standard BASH history as it only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. Currently 2 files are being used for doing this tracking:
+- the recent command history file
+- the command history file (same as the recent command history file but sorted)
 
 6.1. Recent history
 
@@ -180,6 +190,12 @@ When a directory is added to favorites its entry from the persistent history fil
 When the directory is removed from favorites the entry is moved back to persistent history with the actual number of visits.
 
 If the directory hadn't been visited prior to adding to favorites (e.g. if adding it by calling the addToFavorites function with the directory path as argument when in another directory) an entry with 0 visits is created in the excluded history file. If the directory is removed from favorites before visiting it the entry is removed both from favorites file and excluded history and nothing is added to persistent history. 
+
+6.5. Command history
+
+As the user executes commands in navigation mode each command is tracked in a dedicated history file. Up to a specific number of commands can be stored. This is determined by the cHistMaxRows variable.
+
+The commands are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recent command is taken out. The entries are displayed to the user in a sorted fashion so they can easily be found and executed. This occurs in a similar fashion to creating the recent history sub-menu.
 
 7. HANDLING MISSING DIRECTORIES
 
