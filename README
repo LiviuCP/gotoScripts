@@ -197,6 +197,14 @@ As the user executes commands in navigation mode each command is tracked in a de
 
 The commands are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recent command is taken out. The entries are displayed to the user in a sorted fashion so they can easily be found and executed. This occurs in a similar fashion to creating the recent history sub-menu.
 
+It is possible to setup the minimum number of characters a command should contain in order to be stored in the command history file. This is done by setting up the minNrOfCmdChars variable. For example by setting minNrOfCmdChars=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces shluld be added before the word).
+
+For example:
+:echo abcd #will not be included in command history (less than 10 characters - a total of 9, including space, excluding : )
+:echo  abcd #will be included in command history (2 spaces this time)
+:echo #will not be included, no matter how many spaces are entered after echo
+:      echo #will be included, there is a total of 10 spaces, 6 spaces before the echo word
+
 7. HANDLING MISSING DIRECTORIES
 
 It can happen that for an entry chosen from one of the 2 above mentioned menus the path doesn't exist anymore. This can happen for various reasons:
