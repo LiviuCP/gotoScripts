@@ -727,6 +727,12 @@ function navigate {
 	#finally sort the file so user can spot the commands easier
 	consolidateCommandHistory;
     }
+    # erases the command history (this operation is done independently of the one that erases navigation history)
+    function clearCommandHistory {
+	> "$c_r_hist_file";
+	> "$c_hist_file";
+	echo 'Content of command history menu has been erased.';
+    }
     # helper function for executing a new shell command (either with new input or based on a previous command)
     function executeNewCommand {
 	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
@@ -811,6 +817,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo ":     -  repeat last successful shell command";';
 	helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo ":<    -  enter command history menu";';
+	helpMenu="$helpMenu"'echo ":<>   -  clear command history";';
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
@@ -917,6 +924,9 @@ function navigate {
 	':<')
 	    goToCommandMenu;
 	    ;;
+	':<>')
+	    clearCommandHistory;
+	    ;;
 	'<')
 	    goToMenu;
 	    ;;
@@ -965,6 +975,7 @@ function navigate {
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
 	    unset -f updateCommandHistory;
+	    unset -f clearCommandHistory;
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
 	    unset -f displayCurrentDirContent;
@@ -999,6 +1010,7 @@ unset -f displayFavoritesFile;
 unset -f sortFavoritesByBaseName;
 unset -f goToCommandMenu;
 unset -f updateCommandHistory;
+unset -f clearCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f displayCurrentDirContent;
