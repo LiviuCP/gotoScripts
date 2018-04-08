@@ -714,7 +714,7 @@ function navigate {
     # updates the file with most recently executed commands and sorts it
     function updateCommandHistory {
 	nrOfCmdRows=`wc -l "$c_r_hist_file" | awk '{print $1;}'`;
-	matchedCmdRow=`grep -xn "$prevCommand" "$c_r_hist_file"`;
+	matchedCmdRow=`grep -Fxn "$prevCommand" "$c_r_hist_file"`;
 	#remove previous command from history file if already contained
 	if [[ $? == 0 ]]; then
 	    matchedCmdRowNr=`echo $matchedCmdRow | cut -f 1 -d : `;
