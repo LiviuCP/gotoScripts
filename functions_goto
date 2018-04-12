@@ -28,6 +28,7 @@ maxNrOfItems=50; #maximum number of files/dirs listed from current directory in 
 maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
 minNrOfCmdChars=10; #minimum number of characters (including spaces) that a command should have to be included in command history
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
+editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 #
@@ -654,10 +655,16 @@ function navigate {
 	if [[ $cmdNr =~  $nonNegativeInteger     ]] &&
 	   [[ $cmdNr -ge 1                       ]] &&
 	   [[ $cmdNr -le $currentNumberOfCmdEntries ]]; then
-	    # execute the actual command from command history menu
-	    commandToExecute=`sed "$cmdNr"'q;d' "$c_hist_file"`;
 	    clear;
-	    executeNewCommand;
+	    commandHistoryEntry=`sed "$cmdNr"'q;d' "$c_hist_file"`;
+	    if [[ $editPrevCommand == false ]]; then
+		# execute the actual command from command history menu
+		commandToExecute="$commandHistoryEntry";
+		executeNewCommand;
+	    else
+		# edit the chosen command prior to executing
+		editAndExecCmdFromHistory;
+	    fi
 	elif [[ $cmdNr == '!' ]]; then
 	    clear;
 	    echo 'No command executed.';
@@ -733,6 +740,22 @@ function navigate {
 	    echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
 	fi
     }
+    # helper function that feeds a previously executed command (from command history) to user for editing prior to having it executed
+    function editAndExecCmdFromHistory {
+	echo 'Please edit the given command and hit ENTER to execute';
+	echo '(press : and hit ENTER to quit):';
+	read -e -i "$commandHistoryEntry" commandToExecute;
+	if [[ $? != 0 ]]; then
+	    clear;
+	    echo 'This command is only available in BASH 4';
+	    echo 'Please install the appropriate BASH version';
+	elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
+	    clear;
+	    echo 'Command aborted. You returned to navigation menu';
+	else
+	    executeNewCommand;
+	fi
+    }
     # helper function used for displaying the content of the current directory
     function displayCurrentDirContent {
 	# get number of items from current directory
@@ -780,6 +803,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo ":     -  repeat last successful shell command";';
 	helpMenu="$helpMenu"'echo "::    -  enter a shell command based on previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo ":<    -  enter command history menu";';
+	helpMenu="$helpMenu"'echo "::<   -  enter command history menu to edit a previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo ":<>   -  clear command history";';
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
@@ -885,6 +909,11 @@ function navigate {
 	    execCommandBasedOnPrevInput;
 	    ;;
 	':<')
+	    editPrevCommand=false;
+	    goToCommandMenu;
+	    ;;
+	'::<')
+	    editPrevCommand=true;
 	    goToCommandMenu;
 	    ;;
 	':<>')
@@ -941,6 +970,7 @@ function navigate {
 	    unset -f clearCommandHistory;
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
+	    unset -f editAndExecCmdFromHistory;
 	    unset -f displayCurrentDirContent;
 	    unset -f displayHelp;
 	    unset -f handleGeneralInput;
@@ -976,6 +1006,7 @@ unset -f updateCommandHistory;
 unset -f clearCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
+unset -f editAndExecCmdFromHistory;
 unset -f displayCurrentDirContent;
 unset -f displayHelp;
 unset -f execCommandBasedOnPrevInput;
