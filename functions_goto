@@ -641,11 +641,17 @@ function navigate {
 	clear;
 	echo 'COMMAND HISTORY';
 	echo;
+	if [[ $editPrevCommand == false ]]; then
+	    echo '-- EXECUTE COMMAND --';
+	else
+	    echo '-- EDIT COMMAND --';
+	fi
+	echo;
 	cat -n "$c_hist_file";
 	echo;
 	echo 'Current directory: '`pwd`;
 	echo;
-	echo 'Enter the number of the command you want to execute.';
+	echo 'Enter command number.';
 	echo 'Enter ! to quit';
 	echo;
 	read -e cmdNr;
@@ -667,7 +673,7 @@ function navigate {
 	    fi
 	elif [[ $cmdNr == '!' ]]; then
 	    clear;
-	    echo 'No command executed.';
+	    echo 'No command chosen.';
 	else
 	    # handle the input as "normal" navigation input
 	    navigationInput="$cmdNr";
