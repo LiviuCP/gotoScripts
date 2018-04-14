@@ -748,8 +748,9 @@ function navigate {
     }
     # helper function that feeds a previously executed command (from command history) to user for editing prior to having it executed
     function editAndExecCmdFromHistory {
-	echo 'Please edit the given command and hit ENTER to execute';
+	echo 'Please edit the below command and hit ENTER to execute';
 	echo '(press : and hit ENTER to quit):';
+	echo;
 	read -e -i "$commandHistoryEntry" commandToExecute;
 	if [[ $? != 0 ]]; then
 	    clear;
@@ -759,6 +760,7 @@ function navigate {
 	    clear;
 	    echo 'Command aborted. You returned to navigation menu';
 	else
+	    clear;
 	    executeNewCommand;
 	fi
     }
@@ -838,9 +840,10 @@ function navigate {
 	if [[ -z "$prevCommand" ]]; then
 	    echo 'No shell command previously executed. Enter a new command';
 	else
-	    echo 'Enter the required shell command based on the last executed command';
+	    echo 'Please edit the below command and hit ENTER to execute';
 	fi
 	echo '(press : and hit ENTER to quit):';
+	echo;
 	read -e -i "$prevCommand" commandToExecute;
 	if [[ $? != 0 ]]; then
 	    clear;
@@ -850,6 +853,7 @@ function navigate {
 	    clear;
 	    echo 'Command aborted. You returned to navigation menu';
 	else
+	    clear;
 	    executeNewCommand;
 	fi
     }
