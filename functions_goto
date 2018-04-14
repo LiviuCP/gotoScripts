@@ -800,7 +800,7 @@ function navigate {
     # helper function used for displaying the help menu of the navigation mode
     function displayHelp {
 	helpMenu='';
-	helpMenu="$helpMenu"'echo "Navigation commands";';
+	helpMenu="$helpMenu"'echo "Navigation functions";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "For executing any shell command please enter : followed by the command string.";';
 	helpMenu="$helpMenu"'echo "For example enter :ls -l to list the contents of the current directory in detail.";';
@@ -808,7 +808,7 @@ function navigate {
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Other useful navigation options: ";';
 	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo ":-    -  repeat last successful shell command";';
+	helpMenu="$helpMenu"'echo ":-    -  repeat last executed shell command (if any)";';
 	helpMenu="$helpMenu"'echo ":     -  enter a shell command based on previous command (only available in BASH 4)";';
 	helpMenu="$helpMenu"'echo ":<    -  enter command history menu";';
 	helpMenu="$helpMenu"'echo "::    -  enter command history menu to edit a previous command (only available in BASH 4)";';
