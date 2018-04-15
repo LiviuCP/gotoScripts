@@ -435,7 +435,11 @@ function goToMenu {
 	return 1;
     fi
     eval "$display";
-    read -e dirNr;
+    if [[ -z "$2" ]]; then
+	read -e dirNr;
+    else
+	dirNr=$2;
+    fi
     #
     # Step 1: handle the user input
     tempVar=`wc -l "$input_file"`;
