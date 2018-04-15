@@ -461,10 +461,15 @@ function goToMenu {
 	input_file="$fav_file";
 	display='displayFavorites';
 	menuType='favorites';
-    else
+    elif [[ "$1" == '-h' ]]; then
 	input_file="$hist_file";
 	display='displayHistory';
 	menuType='history';
+    else
+	echo 'Invalid first argument of the goToMenu function.';
+	unsetHelpers 2> /dev/null;
+	unset -f unsetHelpers;
+	return 1;
     fi
     #
     if [[ ! -s "$input_file" ]]; then
@@ -974,7 +979,8 @@ function navigate {
 	    clearCommandHistory;
 	    ;;
 	'<')
-	    goToMenu;
+	    # it is necessary to put an argument for accessing history even if not used (as $2 will be checked when accessing the menu entry without entering read mode)
+	    goToMenu -h;
 	    ;;
 	'>')
 	    goToMenu -f;
