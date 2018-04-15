@@ -115,6 +115,8 @@ When choosing an entry (enter the number and press ENTER) from one of the two me
 
 The menus are sorted alphabetically for easy identification of the required entry. 
 
+It is possible to navigate to a specific entry without accessing the menus by entering operator < (for history) or > (for favorites) followed by the entry number in navigation mode. This is a great way of speeding up the access if the user knows "by heart" the entry number of the path to be visited. For example if directory /home/myUserName/Documents has entry number 2 in Favorites the user can enter >2 in navigation mode to visit it. No spaces should be entered between operator and the number. If the string after the operator is not a valid entry number the substring starting with the character after the operator will be considered a directory path and the script will attempt to visit it. If the path is invalid an error will be triggered.
+
 The number of entries of the history menu can be setup for each of the sub-menus by modifying the $rHistMaxRows and $pHistMaxRows variables. However for an efficient use it is recommended not to exceed a total number of 25 entries.
 
 If you cannot find a entry simply enter the required path(s) to navigate to the directory you wish to visit. It is not required to exit the history and favorites menus in order to do this. Any input other than the given range of numbers or the quit (!) is considered regular navigation input. I call this the "input forwarding feature". This feature is present in other menus too.
@@ -127,13 +129,13 @@ Note: if previously entering argument '.' the goToPrevDir function will re-visit
 
 5.4. Adding a directory to favorites
 
-From navigation mode go to the directory you need to add to favorites. Then simply enter >> and press RETURN. Each directory can only be added once to the favorites menu.
+From navigation mode go to the directory you need to add to favorites. Then simply enter +> and press RETURN. Each directory can only be added once to the favorites menu.
 
 Another way of adding the directory would be executing the addToFavorites function with the dir path as argument (both relative and absolute paths are allowed).
 
 5.5. Removing a directory from favorites
 
-From navigation mode enter !> and press RETURN. A menu will be opened. Choose the entry number of the directory to be removed from favorites. Any other input will be handled as normal navigation input by using the "input forwarding feature" that was previously mentioned.
+From navigation mode enter -> and press RETURN. A menu will be opened. Choose the entry number of the directory to be removed from favorites. Any other input will be handled as normal navigation input by using the "input forwarding feature" that was previously mentioned.
 
 5.6. Executing commands
 
@@ -141,11 +143,13 @@ It is possible to execute regular shell commands (like cd, ls, etc.) or other sc
 
 In order to do this you just need to enter the : character followed by the actual command and press ENTER. For example in order to execute 'ls -l' enter ':ls -l'.
 
-To repeat the last executed command just enter the : character and press ENTER. 
+To repeat the last executed command just enter the :- characters and press ENTER.
 
-To enter a new command by editing the previously executed one just enter :: and press ENTER. This feature is only available on BASH4 so make sure to upgrade the shell in order to use it.
+To enter a new command by editing the previously executed one just enter : and press ENTER. This feature is only available on BASH4 so make sure to upgrade the shell in order to use it.
 
 It is also possible to enter the command history menu by typing :< and pressing ENTER. Similar to navigation history by entering a valid number the chosen command is executed.
+
+The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER. This feature is only available in BASH4. In BASH3 the menu can be accessed in edit mode however when entering the number of the command to be edited an error will be triggered.
 
 To erase the command history enter :<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
 
