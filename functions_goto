@@ -825,8 +825,8 @@ function navigate {
 	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
 	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
 	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
-	helpMenu="$helpMenu"'echo ">>    -  add current directory to favorites";';
-	helpMenu="$helpMenu"'echo "!>    -  remove a directory from favorites";';
+	helpMenu="$helpMenu"'echo "+>    -  add current directory to favorites";';
+	helpMenu="$helpMenu"'echo "->    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo "!<>   -  clear navigation history";';
 	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
@@ -948,10 +948,10 @@ function navigate {
 	',')
 	    goToPrevDir;
 	    ;;
-	'>>')
+	'+>')
 	    addToFavorites;
 	    ;;
-	'!>')
+	'->')
 	    removeFromFavorites;
 	    ;;
 	'!<>')
