@@ -873,6 +873,9 @@ function navigate {
 	helpMenu="$helpMenu"'echo "->    -  remove a directory from favorites";';
 	helpMenu="$helpMenu"'echo "!<>   -  clear navigation history";';
 	helpMenu="$helpMenu"'echo;';
+	helpMenu="$helpMenu"'echo "For direct navigation to a history or favorites menu entry please enter < or > followed by a number";';
+	helpMenu="$helpMenu"'echo "Please do not put any spaces between operator and number";';
+	helpMenu="$helpMenu"'echo;';
 	helpMenu="$helpMenu"'echo "Press q to exit";';
 	helpMenu="$helpMenu"'echo;';
 	eval "$helpMenu" | less;
@@ -982,12 +985,13 @@ function navigate {
 	':<>')
 	    clearCommandHistory;
 	    ;;
-	'<')
-	    # it is necessary to put an argument for accessing history even if not used (as $2 will be checked when accessing the menu entry without entering read mode)
-	    goToMenu -h;
+	'<'*)
+	    secondArg=${navigationInput:1};
+	    goToMenu -h "$secondArg";
 	    ;;
-	'>')
-	    goToMenu -f;
+	'>'*)
+	    secondArg=${navigationInput:1};
+	    goToMenu -f "$secondArg";
 	    ;;
 	',')
 	    goToPrevDir;
