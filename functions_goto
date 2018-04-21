@@ -434,8 +434,9 @@ function goToMenu {
 	unset -f unsetHelpers;
 	return 1;
     fi
-    eval "$display";
+    # display menu only if user hasn't given the entry explicitly in the command
     if [[ -z "$2" ]]; then
+	eval "$display";
 	read -e dirNr;
     else
 	dirNr=$2;
