@@ -801,9 +801,11 @@ function navigate {
 	done < "$temp_file"
 	rm "$temp_file";
 	column "$aux_temp_file";
+	echo;
 	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
-	    echo;
-	    echo 'Number of items exceeds the displayed ones! Type :ls -p | less to display all directory items.';
+	    echo "Number of items contained in the directory ($nrOfItems) exceeds the displayed ones ($maxNrOfItems)! Type :ls -p | less to display all directory items.";
+	else
+	    echo "Number of items contained in the directory: $nrOfItems";
 	fi
 	rm "$aux_temp_file";
     }
