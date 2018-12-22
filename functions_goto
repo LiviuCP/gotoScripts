@@ -344,12 +344,16 @@ function goToMenu {
 	# user chooses to replace the directory entry with another (existing) path
 	elif [[ $userChoice == '!m' ]]; then
 	    clear;
+	    echo "Missing directory: $dirPath";
+	    echo;
 	    echo 'Enter the name of the replacing directory: ';
 	    read -e replacingDir;
 	    # the mapping directory should exist and be a valid directory
 	    if [[ ! -d "$replacingDir" ]]; then
+		echo;
 		echo "Directory $replacingDir does not exist or has been deleted.";
-		echo "Cannot map the missing directory $dirPath.";
+		echo;
+		echo "Mapping failed.";
 		return 1;
 	    fi
 	    # ensure the entry gets removed from the working log file (if the file had been created in the current day)
@@ -434,8 +438,9 @@ function goToMenu {
 	    # history should be consolidated again
 	    consolidateHistory;
 	    # confirm mapping has been successfully performed
-	    echo "Missing directory: $dirPath";
-	    echo "Replacing directory: $replacingDir";
+	    echo;
+	    echo "Missing directory replaced with: $replacingDir";
+	    echo;
 	    echo 'Mapping performed successfully.';
 	elif [[ $userChoice == '!' ]]; then
 	    clear;
