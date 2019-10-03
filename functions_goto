@@ -102,6 +102,73 @@ unset -f init;
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 function goToDir {
+    function updateHistory {
+	# Step 1: update the recent history file
+	nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
+	matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
+	#remove previous current directory path from history file if path is contained
+	if [[ $? == 0 ]]; then
+	    matchedRowNr=`echo $matchedRow | cut -f 1 -d : `;
+	    sed "$matchedRowNr"'d' "$r_hist_file" > "$temp_file";
+	#if number of rows is at maximum, remove a row to make room for the new entry
+	elif [[ $nrOfRows -eq $rHistMaxRows ]]; then
+	    sed "$rHistMaxRows"'d' "$r_hist_file" > "$temp_file";
+	#copy the history file to temporary file to maintain consistency with above cases
+	else
+	    cp "$r_hist_file" "$temp_file";
+	fi
+	echo $currentDir > "$r_hist_file";
+	cat "$temp_file" >> "$r_hist_file";
+	rm "$temp_file";
+	#
+	# Step 2: check if the visited directory path is contained in the log file of the current day:
+	# - if yes: consolidate history, no more actions required
+	# - if not: go to next step
+	grep -x "$currentDir" "$w_log_file" > /dev/null;
+	if [[ $? == 0 ]]; then
+	    consolidateHistory;
+	    return 0;
+	else
+	    echo "$currentDir" >> "$w_log_file";
+	fi
+	# Step 3: check if the entry already exists in the persistent history file
+	# - if yes: update the persistent history file, then sort it in reverse order by number of visits
+	# - if not, check if included in excluded history file
+	#   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
+	#   - if not: add the entry to persistent history file and sort the file
+	#
+	# #use the ';' separator for the grep in order to avoid multiple matches
+	pHistMatchedRow=`grep "$currentDir"';' "$p_hist_file"`;
+	#
+	if [[ $? == 0 ]]; then
+	    extractedPath=`echo $pHistMatchedRow | cut -f 1 -d ';'`;
+	    visitsCount=`echo $pHistMatchedRow | cut -f 2 -d ';'`;
+	    let "visitsCount=visitsCount+1";
+	    pHistReplacingRow="$extractedPath"';'"$visitsCount";
+	    grep -v "$pHistMatchedRow" "$p_hist_file" > "$temp_file";
+	    echo "$pHistReplacingRow" >> "$temp_file";
+	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
+	else
+	    eHistMatchedRow=`grep "$currentDir"';' "$e_hist_file"`;
+	    if [[ $? == 0 ]]; then
+		extractedPath=`echo $eHistMatchedRow | cut -f 1 -d ';'`;
+		visitsCount=`echo $eHistMatchedRow | cut -f 2 -d ';'`;
+		let "visitsCount=visitsCount+1";
+		eHistReplacingRow="$extractedPath"';'"$visitsCount";
+		grep -v "$eHistMatchedRow" "$e_hist_file" > "$temp_file";
+		echo "$eHistReplacingRow" >> "$temp_file";
+		mv "$temp_file" "$e_hist_file";
+	    else
+		echo "$currentDir"';1' >> "$p_hist_file";
+		sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
+		mv "$temp_file" "$p_hist_file";
+	    fi
+	fi
+	#
+	# consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
+	consolidateHistory;
+    }
+
     #
     # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
     if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
@@ -129,7 +196,7 @@ function goToDir {
 	return 1;  
     fi
     #
-    # Step 4: if cd was done to a different directory than the previous one, update the recent history file
+    # Step 4: if cd was done to a different directory than the previous one, update the history file
     currentDir=`pwd`;
     clear;
     echo "Previous directory: $prevDir";
@@ -137,69 +204,8 @@ function goToDir {
     if [[ $currentDir == $prevDir ]]; then
 	return 0;
     fi
-    nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
-    matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
-    #remove previous current directory path from history file if path is contained
-    if [[ $? == 0 ]]; then
-	matchedRowNr=`echo $matchedRow | cut -f 1 -d : `;
-	sed "$matchedRowNr"'d' "$r_hist_file" > "$temp_file";
-    #if number of rows is at maximum, remove a row to make room for the new entry
-    elif [[ $nrOfRows -eq $rHistMaxRows ]]; then
-	sed "$rHistMaxRows"'d' "$r_hist_file" > "$temp_file";
-    #copy the history file to temporary file to maintain consistency with above cases
-    else
-	cp "$r_hist_file" "$temp_file";
-    fi
-    echo $currentDir > "$r_hist_file";
-    cat "$temp_file" >> "$r_hist_file";
-    rm "$temp_file";
-    #
-	# Step 5: check if the visited directory path is contained in the log file of the current day:
-    # - if yes: consolidate history, no more actions required
-    # - if not: go to next step
-    grep -x "$currentDir" "$w_log_file" > /dev/null;
-    if [[ $? == 0 ]]; then
-	consolidateHistory;
-	return 0;
-    else
-	echo "$currentDir" >> "$w_log_file";
-    fi
-    # Step 6: check if the entry already exists in the persistent history file
-    # - if yes: update the persistent history file, then sort it in reverse order by number of visits
-    # - if not, check if included in excluded history file
-    #   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
-    #   - if not: add the entry to persistent history file and sort the file
-    #
-    # #use the ';' separator for the grep in order to avoid multiple matches
-    pHistMatchedRow=`grep "$currentDir"';' "$p_hist_file"`;
-    #
-    if [[ $? == 0 ]]; then
-	extractedPath=`echo $pHistMatchedRow | cut -f 1 -d ';'`;
-	visitsCount=`echo $pHistMatchedRow | cut -f 2 -d ';'`;
-	let "visitsCount=visitsCount+1";
-	pHistReplacingRow="$extractedPath"';'"$visitsCount";
-	grep -v "$pHistMatchedRow" "$p_hist_file" > "$temp_file";
-	echo "$pHistReplacingRow" >> "$temp_file";
-	sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-    else
-	eHistMatchedRow=`grep "$currentDir"';' "$e_hist_file"`;
-	if [[ $? == 0 ]]; then
-	    extractedPath=`echo $eHistMatchedRow | cut -f 1 -d ';'`;
-	    visitsCount=`echo $eHistMatchedRow | cut -f 2 -d ';'`;
-	    let "visitsCount=visitsCount+1";
-	    eHistReplacingRow="$extractedPath"';'"$visitsCount";
-	    grep -v "$eHistMatchedRow" "$e_hist_file" > "$temp_file";
-	    echo "$eHistReplacingRow" >> "$temp_file";
-	    mv "$temp_file" "$e_hist_file";
-	else
-	    echo "$currentDir"';1' >> "$p_hist_file";
-	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-	    mv "$temp_file" "$p_hist_file";
-	fi
-    fi
-    #
-    # consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
-    consolidateHistory;
+    updateHistory;
+    unset -f updateHistory;
 }
 #
 # ******************************************************************************************************************
@@ -1045,6 +1051,7 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
+unset -f updateHistory;
 unset -f clearHistory;
 #
 #
