@@ -66,6 +66,19 @@ function consolidateCommandHistory {
     mv "$temp_file" "$c_hist_file";
 }
 #
+# Shared helper function that sorts the favorites file by taking into account the name of each directory and not the path
+#
+function sortFavoritesByBaseName {
+    > "$temp_file";
+    while read currentEntry;
+    do
+	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
+	echo "$currentEntryConverted" >> "$temp_file";
+    done < "$fav_file"
+    sort -f "$temp_file" | cut -f 2 -d ':' > "$fav_file";
+    rm "$temp_file";
+}
+#
 # This function is only run once (when this file is loaded) and prepares the environment for usage
 #
 function init {
@@ -371,9 +384,10 @@ function goToMenu {
 		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
 		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 		    mv "$temp_file" "$p_hist_file";
-		# if missing dir had been in the excluded history file: re-create favorites file after update
+		# if missing dir had been in the excluded history file: re-create favorites file after update (and re-sort)
 		else
 		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		    sortFavoritesByBaseName;
 		fi
 	    # - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
 	    else
@@ -392,9 +406,10 @@ function goToMenu {
 		if [[ "$replaced_dir_file" == "$p_hist_file" ]]; then
 		    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 		    mv "$temp_file" "$p_hist_file";
-		# if missing dir had been in the excluded history file: re-create favorites file after update
+		# if missing dir had been in the excluded history file: re-create favorites file after update (and re-sort)
 		else
 		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
+		    sortFavoritesByBaseName;
 		fi
 	    fi
 	    # history should be consolidated again
@@ -539,17 +554,6 @@ function addToFavorites {
 	    echo "$dirToAdd"';0' >> "$e_hist_file";
 	fi
     }
-    # helper function that sorts the favorites file by taking into account the name of each directory and not the path
-    function sortFavoritesByBaseName {
-	> "$temp_file";
-	while read currentEntry;
-	do
-	    currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
-	    echo "$currentEntryConverted" >> "$temp_file";
-	done < "$fav_file"
-	sort -f "$temp_file" | cut -f 2 -d ':' > "$fav_file";
-	rm "$temp_file";
-    }
     #
     # finally add the directory to favorites and sort the entries by directory name
     if [[  -f "$fav_file" ]]; then
@@ -571,7 +575,6 @@ function addToFavorites {
 	echo "Directory $dirToAdd added to favorites.";
 	excludeFromPersistentHistory;
 	unset -f excludeFromPersistentHistory;
-	unset -f sortFavoritesByBaseName;
 	return 0;
     fi
 }
@@ -1030,7 +1033,7 @@ function navigate {
 # These functions are only helper functions that are used by the global functions in order to perform specific operations
 # Direct access from user side might cause unexpected behavior
 # In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
-# The exception is the consolidateHistory function which cannot be disabled as it is used by multiple global functions and is declared outside them
+# The exceptions are the consolidateHistory and sortFavoritesByBaseName functions which cannot be disabled as they are being used by multiple global functions and are declared outside them
 #
 unset -f formatFileContent;
 unset -f displayHistory;
@@ -1038,7 +1041,6 @@ unset -f displayFavorites;
 unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
-unset -f sortFavoritesByBaseName;
 unset -f goToCommandMenu;
 unset -f updateCommandHistory;
 unset -f clearCommandHistory;
