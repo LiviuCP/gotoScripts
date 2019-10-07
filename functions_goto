@@ -114,7 +114,9 @@ unset -f init;
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 function goToDir {
-    function updateHistory {
+    #
+    # This function updates the three individual history files (recent, persistent, excluded) but does not perform any consolidation (this is done separately after update)
+    function updateIndividualHistoryFiles {
 	# Step 1: update the recent history file
 	nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
 	matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
@@ -138,7 +140,6 @@ function goToDir {
 	# - if not: go to next step
 	grep -x "$currentDir" "$w_log_file" > /dev/null;
 	if [[ $? == 0 ]]; then
-	    consolidateHistory;
 	    return 0;
 	else
 	    echo "$currentDir" >> "$w_log_file";
@@ -176,9 +177,6 @@ function goToDir {
 		mv "$temp_file" "$p_hist_file";
 	    fi
 	fi
-	#
-	# consolidate the recent and persistent history into a single file so the user can see both of them in the history menu
-	consolidateHistory;
     }
 
     # delays that are necessary for the error-free behavior of the function
@@ -257,8 +255,9 @@ function goToDir {
 	open -a terminal;
 	return 0;
     fi
-    updateHistory;
-    unset -f updateHistory;
+    updateIndividualHistoryFiles;
+    consolidateHistory;
+    unset -f updateIndividualHistoryFiles;
     # no matter how the function works the terminal must remain the active window after the script finishes execution
     open -a terminal;
 }
