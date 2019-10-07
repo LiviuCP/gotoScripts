@@ -246,7 +246,7 @@ function goToDir {
 	return 1;
     fi
     #
-    # Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the history file
+    # Step 5: if re-open was successful and cd was done to a different directory than the previous one, update the individual history files and then consolidate recent and persistent history
     currentDir=`pwd`;
     clear;
     echo "Previous directory: $prevDir";
